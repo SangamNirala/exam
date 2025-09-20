@@ -300,12 +300,13 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Document Upload Functionality (Step 4)"
-    - "AI Question Generation"
-  stuck_tasks:
-    - "Document Upload Functionality (Step 4)"
+    - "Student Portal Token Validation"
+    - "Student Session Creation"
+    - "Exam Submission Processing"
+    - "Submission Details Retrieval"
+  stuck_tasks: []
   test_all: false
-  test_priority: "critical_first"
+  test_priority: "high_first"
 
   - task: "Document Upload Endpoint"
     implemented: true
