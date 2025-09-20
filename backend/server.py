@@ -123,6 +123,107 @@ async def get_status_checks():
     status_checks = await db.status_checks.find().to_list(1000)
     return [StatusCheck(**status_check) for status_check in status_checks]
 
+# Assessment Endpoints
+@api_router.post("/assessments", response_model=Assessment)
+async def create_assessment(assessment_data: AssessmentCreate):
+    assessment_dict = assessment_data.dict()
+    assessment_obj = Assessment(**assessment_dict)
+    result = await db.assessments.insert_one(assessment_obj.dict())
+    return assessment_obj
+
+@api_router.get("/assessments", response_model=List[Assessment])
+async def get_assessments():
+    assessments = await db.assessments.find().to_list(1000)
+    return [Assessment(**assessment) for assessment in assessments]
+
+@api_router.get("/assessments/{assessment_id}", response_model=Assessment)
+async def get_assessment(assessment_id: str):
+    assessment = await db.assessments.find_one({"id": assessment_id})
+    if assessment:
+        return Assessment(**assessment)
+    return {"error": "Assessment not found"}
+
+@api_router.put("/assessments/{assessment_id}", response_model=Assessment)
+async def update_assessment(assessment_id: str, update_data: AssessmentUpdate):
+    update_dict = {k: v for k, v in update_data.dict().items() if v is not None}
+    update_dict["last_modified"] = datetime.utcnow()
+    
+    result = await db.assessments.update_one(
+        {"id": assessment_id}, 
+        {"$set": update_dict}
+    )
+    
+    if result.modified_count:
+        updated_assessment = await db.assessments.find_one({"id": assessment_id})
+        return Assessment(**updated_assessment)
+    return {"error": "Assessment not found or no changes made"}
+
+@api_router.delete("/assessments/{assessment_id}")
+async def delete_assessment(assessment_id: str):
+    result = await db.assessments.delete_one({"id": assessment_id})
+    if result.deleted_count:
+        return {"message": "Assessment deleted successfully"}
+    return {"error": "Assessment not found"}
+
+# Question Endpoints
+@api_router.post("/assessments/{assessment_id}/questions", response_model=Question)
+async def add_question_to_assessment(assessment_id: str, question_data: QuestionCreate):
+    question_dict = question_data.dict()
+    question_obj = Question(**question_dict)
+    
+    result = await db.assessments.update_one(
+        {"id": assessment_id},
+        {"$push": {"questions": question_obj.dict()}, "$set": {"last_modified": datetime.utcnow()}}
+    )
+    
+    if result.modified_count:
+        return question_obj
+    return {"error": "Assessment not found"}
+
+@api_router.get("/assessments/{assessment_id}/questions", response_model=List[Question])
+async def get_assessment_questions(assessment_id: str):
+    assessment = await db.assessments.find_one({"id": assessment_id})
+    if assessment:
+        return [Question(**q) for q in assessment.get("questions", [])]
+    return {"error": "Assessment not found"}
+
+@api_router.put("/assessments/{assessment_id}/questions/{question_id}", response_model=Question)
+async def update_question(assessment_id: str, question_id: str, question_data: QuestionCreate):
+    question_dict = question_data.dict()
+    question_dict["id"] = question_id
+    
+    result = await db.assessments.update_one(
+        {"id": assessment_id, "questions.id": question_id},
+        {"$set": {"questions.$": question_dict, "last_modified": datetime.utcnow()}}
+    )
+    
+    if result.modified_count:
+        return Question(**question_dict)
+    return {"error": "Assessment or question not found"}
+
+@api_router.delete("/assessments/{assessment_id}/questions/{question_id}")
+async def delete_question(assessment_id: str, question_id: str):
+    result = await db.assessments.update_one(
+        {"id": assessment_id},
+        {"$pull": {"questions": {"id": question_id}}, "$set": {"last_modified": datetime.utcnow()}}
+    )
+    
+    if result.modified_count:
+        return {"message": "Question deleted successfully"}
+    return {"error": "Assessment or question not found"}
+
+# Question Settings Endpoints
+@api_router.put("/assessments/{assessment_id}/settings")
+async def update_question_settings(assessment_id: str, settings: QuestionSettings):
+    result = await db.assessments.update_one(
+        {"id": assessment_id},
+        {"$set": {"question_settings": settings.dict(), "last_modified": datetime.utcnow()}}
+    )
+    
+    if result.modified_count:
+        return {"message": "Settings updated successfully"}
+    return {"error": "Assessment not found"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
