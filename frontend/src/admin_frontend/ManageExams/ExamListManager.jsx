@@ -25,7 +25,8 @@ import {
   CheckCircle,
   Play,
   Pause,
-  Archive
+  Archive,
+  Plus
 } from 'lucide-react';
 import { useExamManagement } from '../../contexts/ExamManagementContext';
 
