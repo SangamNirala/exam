@@ -139,6 +139,118 @@ class AIGenerationResponse(BaseModel):
     questions: List[Question]
     processing_log: List[str]
 
+# Helper Functions
+async def extract_text_from_pdf(file_content: bytes) -> str:
+    """Extract text from PDF file bytes."""
+    try:
+        pdf_file = io.BytesIO(file_content)
+        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        
+        text = ""
+        for page in pdf_reader.pages:
+            text += page.extract_text() + "\n"
+        
+        return text.strip()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to extract text from PDF: {str(e)}")
+
+async def generate_questions_with_gemini(content: str, question_count: int, difficulty: str, question_types: List[str]) -> List[Question]:
+    """Generate questions using Gemini AI based on document content."""
+    try:
+        # Create a detailed prompt for question generation
+        prompt = f"""
+        Based on the following document content, generate {question_count} educational questions.
+        
+        Requirements:
+        - Difficulty level: {difficulty}
+        - Question types: {', '.join(question_types)}
+        - Questions should be directly related to the content provided
+        - For MCQ questions, provide 4 options with one correct answer
+        - For descriptive questions, provide clear question prompts
+        - Include estimated time and appropriate tags
+        
+        Document content:
+        {content[:4000]}  # Limit content to avoid token limits
+        
+        Please format your response as a JSON array where each question object has this structure:
+        {{
+            "type": "mcq" or "descriptive",
+            "question": "Question text",
+            "options": ["A", "B", "C", "D"] (only for MCQ),
+            "correct_answer": 0-3 (only for MCQ, index of correct option),
+            "difficulty": "{difficulty}",
+            "estimated_time": number_in_minutes,
+            "tags": ["tag1", "tag2"],
+            "explanation": "Brief explanation (optional)"
+        }}
+        
+        Return only the JSON array, no additional text.
+        """
+        
+        response = model.generate_content(prompt)
+        
+        # Parse the response
+        response_text = response.text.strip()
+        
+        # Clean the response if it has markdown formatting
+        if response_text.startswith('```json'):
+            response_text = response_text[7:]
+        if response_text.endswith('```'):
+            response_text = response_text[:-3]
+        
+        response_text = response_text.strip()
+        
+        # Parse JSON response
+        questions_data = json.loads(response_text)
+        
+        # Convert to Question objects
+        questions = []
+        for i, q_data in enumerate(questions_data):
+            question = Question(
+                id=str(uuid.uuid4()),
+                type=q_data.get('type', 'mcq'),
+                question=q_data.get('question', ''),
+                options=q_data.get('options'),
+                correct_answer=q_data.get('correct_answer'),
+                difficulty=q_data.get('difficulty', difficulty),
+                estimated_time=q_data.get('estimated_time', 2),
+                tags=q_data.get('tags', []),
+                explanation=q_data.get('explanation'),
+                points=1.0
+            )
+            questions.append(question)
+        
+        return questions
+        
+    except json.JSONDecodeError as e:
+        # Fallback: create generic questions if JSON parsing fails
+        logging.error(f"Failed to parse Gemini response as JSON: {str(e)}")
+        return await create_fallback_questions(content, question_count, difficulty)
+    except Exception as e:
+        logging.error(f"Error generating questions with Gemini: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate questions: {str(e)}")
+
+async def create_fallback_questions(content: str, question_count: int, difficulty: str) -> List[Question]:
+    """Create fallback questions when AI generation fails."""
+    # Extract key terms from content for basic question generation
+    words = content.lower().split()
+    key_terms = [word for word in words if len(word) > 5][:10]
+    
+    questions = []
+    for i in range(min(question_count, 3)):  # Limit fallback questions
+        question = Question(
+            id=str(uuid.uuid4()),
+            type="descriptive",
+            question=f"Explain the key concepts mentioned in the document related to {key_terms[i] if i < len(key_terms) else 'the main topic'}.",
+            difficulty=difficulty,
+            estimated_time=5,
+            tags=[key_terms[i] if i < len(key_terms) else "general"],
+            points=1.0
+        )
+        questions.append(question)
+    
+    return questions
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
