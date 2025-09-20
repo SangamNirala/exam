@@ -1027,6 +1027,24 @@ class BackendTester:
         if assessment_id:
             self.test_ai_question_generation(assessment_id)
         
+        # NEW TESTS: Student Portal Endpoints
+        print("\n🎓 Testing Student Portal Endpoints...")
+        
+        # 11. Test token validation
+        self.test_token_validation()
+        
+        # 12. Test student session creation
+        self.test_student_session_creation()
+        
+        # 13. Test exam submission
+        self.test_exam_submission()
+        
+        # 14. Test submission retrieval
+        self.test_submission_retrieval()
+        
+        # 15. Test complete student portal workflow
+        self.test_student_portal_workflow()
+        
         # Summary
         print("\n" + "=" * 60)
         print("📊 TEST SUMMARY")
