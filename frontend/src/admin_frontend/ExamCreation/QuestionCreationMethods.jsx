@@ -581,4 +581,395 @@ const QuestionCreationMethods = () => {
   );
 };
 
+// Question Editor Component
+const QuestionEditor = ({ question, onSave, onCancel }) => {
+  const [questionData, setQuestionData] = useState({
+    type: question?.type || 'mcq',
+    question: question?.question || '',
+    options: question?.options || ['', '', '', ''],
+    correctAnswer: question?.correctAnswer || 0,
+    difficulty: question?.difficulty || 'intermediate',
+    estimatedTime: question?.estimatedTime || 2,
+    tags: question?.tags || [],
+    points: question?.points || 1,
+    explanation: question?.explanation || '',
+    maxWords: question?.maxWords || 200
+  });
+
+  const [errors, setErrors] = useState({});
+  const [newTag, setNewTag] = useState('');
+
+  const validateQuestion = () => {
+    const newErrors = {};
+
+    if (!questionData.question.trim()) {
+      newErrors.question = 'Question text is required';
+    }
+
+    if (questionData.type === 'mcq') {
+      const validOptions = questionData.options.filter(opt => opt.trim());
+      if (validOptions.length < 2) {
+        newErrors.options = 'At least 2 options are required for MCQ';
+      }
+      if (questionData.correctAnswer >= validOptions.length) {
+        newErrors.correctAnswer = 'Please select a valid correct answer';
+      }
+    }
+
+    if (questionData.estimatedTime < 1 || questionData.estimatedTime > 60) {
+      newErrors.estimatedTime = 'Estimated time must be between 1 and 60 minutes';
+    }
+
+    if (questionData.points < 0.1 || questionData.points > 100) {
+      newErrors.points = 'Points must be between 0.1 and 100';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSave = () => {
+    if (validateQuestion()) {
+      const cleanedData = {
+        ...questionData,
+        options: questionData.type === 'mcq' ? questionData.options.filter(opt => opt.trim()) : undefined
+      };
+      onSave(cleanedData);
+    }
+  };
+
+  const addOption = () => {
+    if (questionData.options.length < 6) {
+      setQuestionData(prev => ({
+        ...prev,
+        options: [...prev.options, '']
+      }));
+    }
+  };
+
+  const removeOption = (index) => {
+    if (questionData.options.length > 2) {
+      const newOptions = questionData.options.filter((_, i) => i !== index);
+      setQuestionData(prev => ({
+        ...prev,
+        options: newOptions,
+        correctAnswer: prev.correctAnswer >= index ? Math.max(0, prev.correctAnswer - 1) : prev.correctAnswer
+      }));
+    }
+  };
+
+  const updateOption = (index, value) => {
+    const newOptions = [...questionData.options];
+    newOptions[index] = value;
+    setQuestionData(prev => ({
+      ...prev,
+      options: newOptions
+    }));
+  };
+
+  const addTag = () => {
+    if (newTag.trim() && !questionData.tags.includes(newTag.trim())) {
+      setQuestionData(prev => ({
+        ...prev,
+        tags: [...prev.tags, newTag.trim()]
+      }));
+      setNewTag('');
+    }
+  };
+
+  const removeTag = (tagToRemove) => {
+    setQuestionData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }));
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-6">
+      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center">
+              <Edit3 className="w-6 h-6 mr-3 text-blue-600" />
+              {question ? 'Edit Question' : 'Add New Question'}
+            </CardTitle>
+            <Button variant="ghost" onClick={onCancel} className="rounded-xl">
+              <AlertCircle className="w-4 h-4" />
+            </Button>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="space-y-6">
+          {/* Question Type */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-3">
+              Question Type
+            </label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { id: 'mcq', label: 'Multiple Choice', icon: '🔘' },
+                { id: 'descriptive', label: 'Descriptive', icon: '📝' },
+                { id: 'coding', label: 'Coding', icon: '💻' },
+                { id: 'practical', label: 'Practical', icon: '🛠️' }
+              ].map((type) => (
+                <button
+                  key={type.id}
+                  type="button"
+                  onClick={() => setQuestionData(prev => ({ ...prev, type: type.id }))}
+                  className={`p-4 rounded-xl border-2 transition-all text-center ${
+                    questionData.type === type.id
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="text-2xl mb-2">{type.icon}</div>
+                  <div className="text-sm font-medium">{type.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Question Text */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Question Text *
+            </label>
+            <textarea
+              value={questionData.question}
+              onChange={(e) => setQuestionData(prev => ({ ...prev, question: e.target.value }))}
+              placeholder="Enter your question here..."
+              rows={4}
+              className={`w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none ${
+                errors.question ? 'border-red-300' : 'border-slate-300'
+              }`}
+            />
+            {errors.question && (
+              <p className="mt-1 text-sm text-red-600">{errors.question}</p>
+            )}
+          </div>
+
+          {/* MCQ Options */}
+          {questionData.type === 'mcq' && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-sm font-medium text-slate-700">
+                  Answer Options *
+                </label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addOption}
+                  disabled={questionData.options.length >= 6}
+                  className="rounded-lg"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Option
+                </Button>
+              </div>
+
+              <div className="space-y-3">
+                {questionData.options.map((option, index) => (
+                  <div key={index} className="flex items-center space-x-3">
+                    <input
+                      type="radio"
+                      name="correctAnswer"
+                      checked={questionData.correctAnswer === index}
+                      onChange={() => setQuestionData(prev => ({ ...prev, correctAnswer: index }))}
+                      className="w-4 h-4 text-green-600"
+                    />
+                    <div className="flex-1 flex items-center space-x-2">
+                      <span className="text-sm font-medium text-slate-600 w-6">
+                        {String.fromCharCode(65 + index)}.
+                      </span>
+                      <input
+                        type="text"
+                        value={option}
+                        onChange={(e) => updateOption(index, e.target.value)}
+                        placeholder={`Option ${String.fromCharCode(65 + index)}`}
+                        className="flex-1 p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                      {questionData.options.length > 2 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeOption(index)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {errors.options && (
+                <p className="mt-1 text-sm text-red-600">{errors.options}</p>
+              )}
+              {errors.correctAnswer && (
+                <p className="mt-1 text-sm text-red-600">{errors.correctAnswer}</p>
+              )}
+            </div>
+          )}
+
+          {/* Descriptive Question Settings */}
+          {questionData.type === 'descriptive' && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Maximum Words
+              </label>
+              <input
+                type="number"
+                value={questionData.maxWords}
+                onChange={(e) => setQuestionData(prev => ({ ...prev, maxWords: parseInt(e.target.value) }))}
+                min="50"
+                max="1000"
+                className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          )}
+
+          {/* Question Settings */}
+          <div className="grid md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Difficulty Level
+              </label>
+              <select
+                value={questionData.difficulty}
+                onChange={(e) => setQuestionData(prev => ({ ...prev, difficulty: e.target.value }))}
+                className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Estimated Time (minutes)
+              </label>
+              <input
+                type="number"
+                value={questionData.estimatedTime}
+                onChange={(e) => setQuestionData(prev => ({ ...prev, estimatedTime: parseInt(e.target.value) }))}
+                min="1"
+                max="60"
+                className={`w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  errors.estimatedTime ? 'border-red-300' : 'border-slate-300'
+                }`}
+              />
+              {errors.estimatedTime && (
+                <p className="mt-1 text-sm text-red-600">{errors.estimatedTime}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Points
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                value={questionData.points}
+                onChange={(e) => setQuestionData(prev => ({ ...prev, points: parseFloat(e.target.value) }))}
+                min="0.1"
+                max="100"
+                className={`w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  errors.points ? 'border-red-300' : 'border-slate-300'
+                }`}
+              />
+              {errors.points && (
+                <p className="mt-1 text-sm text-red-600">{errors.points}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Tags */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Tags (Optional)
+            </label>
+            <div className="flex items-center space-x-2 mb-3">
+              <input
+                type="text"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                placeholder="Add a tag..."
+                className="flex-1 p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addTag}
+                className="rounded-lg"
+              >
+                Add
+              </Button>
+            </div>
+            {questionData.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {questionData.tags.map((tag, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="flex items-center space-x-1"
+                  >
+                    <span>{tag}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeTag(tag)}
+                      className="ml-1 hover:text-red-600"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Explanation (Optional) */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Explanation (Optional)
+            </label>
+            <textarea
+              value={questionData.explanation}
+              onChange={(e) => setQuestionData(prev => ({ ...prev, explanation: e.target.value }))}
+              placeholder="Provide an explanation for the correct answer..."
+              rows={3}
+              className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-3 pt-6 border-t">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              className="rounded-xl"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSave}
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {question ? 'Update Question' : 'Save Question'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
 export default QuestionCreationMethods;
