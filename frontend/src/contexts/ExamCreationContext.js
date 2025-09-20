@@ -420,6 +420,7 @@ export const ExamCreationProvider = ({ children }) => {
     // Settings
     updateQuestionSettings: (settings) => dispatch({ type: 'UPDATE_QUESTION_SETTINGS', payload: settings }),
     updateTokenSettings: (settings) => dispatch({ type: 'UPDATE_TOKEN_SETTINGS', payload: settings }),
+    setGeneratedTokens: (tokens) => dispatch({ type: 'SET_GENERATED_TOKENS', payload: tokens }),
     
     // Utility functions
     validateStep,
