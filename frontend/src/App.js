@@ -4,9 +4,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppStateProvider } from "./contexts/AppStateContext";
 import { AdminProvider } from "./contexts/AdminContext";
 import { StudentProvider } from "./contexts/StudentContext";
+import { StudentAuthProvider } from "./contexts/StudentAuthContext";
 import LandingPage from "./components/LandingPage";
 import Dashboard from "./components/Dashboard";
 import NewAdminDashboard from "./admin_frontend/NewAdminDashboard";
+import AuthenticationFlow from "./student_frontend/Auth/AuthenticationFlow";
 
 function App() {
   return (
