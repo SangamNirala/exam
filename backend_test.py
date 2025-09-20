@@ -906,9 +906,9 @@ class BackendTester:
                 return
             
             # Step 2: Create session
-            session_data = {"token": "DEMO", "accessibility_settings": {}}
+            session_params = {"token": "DEMO"}
             session_response = self.session.post(f"{self.base_url}/students/sessions", 
-                                               json=session_data, timeout=10)
+                                               params=session_params, timeout=10)
             
             if session_response.status_code != 200:
                 self.log_test("Student Portal Workflow", False, 
