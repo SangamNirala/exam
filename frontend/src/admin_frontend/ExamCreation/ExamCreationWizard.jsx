@@ -104,10 +104,12 @@ const ExamCreationWizard = ({ onClose }) => {
   };
 
   const handleStepComplete = (stepData) => {
+    // Update the context with the local data
     updateBasicInfo(stepData);
-    if (nextStep()) {
-      // Step validation passed, continue
-    }
+    // Use setTimeout to ensure state update is processed before validation
+    setTimeout(() => {
+      nextStep();
+    }, 0);
   };
 
   const handlePrevious = () => {
