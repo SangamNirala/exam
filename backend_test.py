@@ -920,8 +920,8 @@ class BackendTester:
             return False
 
     def run_all_tests(self):
-        """Run all backend tests including new document and AI endpoints"""
-        print(f"🚀 Starting Backend API Tests for Assessment Management System")
+        """Run all backend tests including Student Portal Authentication System"""
+        print(f"🚀 Starting Backend API Tests for Student Portal Authentication System")
         print(f"📡 Testing against: {self.base_url}")
         print("=" * 60)
         
@@ -929,6 +929,9 @@ class BackendTester:
         self.created_assessment_id = None
         self.created_question_id = None
         self.created_document_id = None
+        self.created_session_id = None
+        self.demo_tokens = []
+        self.demo_exam_id = None
         
         # Test basic connectivity first
         if not self.test_connectivity():
@@ -939,46 +942,76 @@ class BackendTester:
         self.test_status_endpoints()
         self.test_database_connectivity()
         
-        # Test assessment management system endpoints
+        # PRIORITY TESTS: Student Portal Authentication System
+        print("\n🔐 Testing Student Portal Authentication System...")
+        
+        # 1. Test demo token creation
+        demo_tokens = self.test_demo_token_creation()
+        
+        # 2. Test token validation with valid tokens
+        if demo_tokens:
+            self.test_token_validation_valid()
+        
+        # 3. Test token validation with invalid tokens
+        self.test_token_validation_invalid()
+        
+        # 4. Test face verification with valid token
+        if demo_tokens:
+            self.test_face_verification_valid()
+        
+        # 5. Test face verification with invalid token
+        self.test_face_verification_invalid_token()
+        
+        # 6. Test face verification with invalid image data
+        if demo_tokens:
+            self.test_face_verification_invalid_image()
+        
+        # 7. Test database collections are created and populated
+        self.test_database_collections_created()
+        
+        # 8. Test error handling across authentication endpoints
+        self.test_authentication_error_handling()
+        
+        # Test assessment management system endpoints (existing functionality)
         print("\n🎯 Testing Assessment Management System...")
         
-        # 1. Test assessment creation
+        # 9. Test assessment creation
         assessment_id = self.test_assessment_creation()
         
-        # 2. Test assessment retrieval
+        # 10. Test assessment retrieval
         self.test_assessment_retrieval()
         
-        # 3. Test specific assessment retrieval
+        # 11. Test specific assessment retrieval
         if assessment_id:
             self.test_specific_assessment_retrieval(assessment_id)
         
-        # 4. Test question management
+        # 12. Test question management
         question_ids = []
         if assessment_id:
             question_ids = self.test_question_management(assessment_id) or []
         
-        # 5. Test question retrieval
+        # 13. Test question retrieval
         if assessment_id:
             self.test_question_retrieval(assessment_id)
         
-        # 6. Test question update
+        # 14. Test question update
         if assessment_id and question_ids:
             self.test_question_update(assessment_id, question_ids[0])
         
-        # NEW TESTS: Document Processing and AI Question Generation
+        # Document Processing and AI Question Generation Tests
         print("\n🤖 Testing Document Processing and AI Question Generation...")
         
-        # 7. Test document upload
+        # 15. Test document upload
         document_id = self.test_document_upload()
         
-        # 8. Test document info retrieval
+        # 16. Test document info retrieval
         if document_id:
             self.test_document_info_retrieval(document_id)
         
-        # 9. Test Gemini API connectivity
+        # 17. Test Gemini API connectivity
         self.test_gemini_api_connectivity()
         
-        # 10. Test AI question generation
+        # 18. Test AI question generation
         if assessment_id:
             self.test_ai_question_generation(assessment_id)
         
@@ -997,14 +1030,26 @@ class BackendTester:
         # Show critical failures
         critical_failures = [r for r in self.test_results if not r['success'] and 
                            any(keyword in r['test'].lower() for keyword in 
-                               ['connectivity', 'database', 'assessment', 'question', 'document', 'gemini', 'ai'])]
+                               ['connectivity', 'database', 'assessment', 'question', 'document', 'gemini', 'ai', 'token', 'face', 'authentication'])]
         
         if critical_failures:
             print(f"\n🚨 CRITICAL ISSUES FOUND:")
             for failure in critical_failures:
                 print(f"   • {failure['test']}: {failure['message']}")
         else:
-            print(f"\n🎉 All critical endpoints including document processing and AI generation are working!")
+            print(f"\n🎉 All critical endpoints including Student Portal Authentication System are working!")
+        
+        # Show authentication-specific summary
+        auth_tests = [r for r in self.test_results if any(keyword in r['test'].lower() for keyword in ['token', 'face', 'demo', 'authentication'])]
+        auth_passed = sum(1 for r in auth_tests if r['success'])
+        
+        if auth_tests:
+            print(f"\n🔐 AUTHENTICATION SYSTEM SUMMARY:")
+            print(f"   ✅ Authentication Tests Passed: {auth_passed}/{len(auth_tests)}")
+            if auth_passed == len(auth_tests):
+                print(f"   🎯 Student Portal Authentication System is fully functional!")
+            else:
+                print(f"   ⚠️  Some authentication features need attention")
         
         return failed == 0
 
