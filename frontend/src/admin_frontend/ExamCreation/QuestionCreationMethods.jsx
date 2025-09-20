@@ -365,7 +365,7 @@ const QuestionCreationMethods = () => {
       });
 
       // Call the backend API for AI question generation
-      const response = await fetch(`${backendUrl}/api/assessments/${generationRequest.assessment_id}/generate-questions`, {
+      const response = await fetch(`${backendUrl}/api/assessments/${assessmentId}/generate-questions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
