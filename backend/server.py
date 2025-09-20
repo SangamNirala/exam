@@ -115,6 +115,30 @@ class AssessmentUpdate(BaseModel):
     content_source: Optional[str] = None
     status: Optional[str] = None
 
+# Document Processing Models
+class DocumentInfo(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    filename: str
+    content_type: str
+    file_size: int
+    upload_timestamp: datetime = Field(default_factory=datetime.utcnow)
+    processed: bool = False
+    extracted_text: Optional[str] = None
+
+class AIGenerationRequest(BaseModel):
+    assessment_id: str
+    document_contents: List[str]
+    question_count: int = 10
+    difficulty: str = "intermediate"
+    question_types: List[str] = ["mcq"]
+    focus_area: str = "balanced"
+
+class AIGenerationResponse(BaseModel):
+    success: bool
+    questions_generated: int
+    questions: List[Question]
+    processing_log: List[str]
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
