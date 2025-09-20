@@ -16,7 +16,8 @@ import {
   AlertTriangle,
   RefreshCw,
   Download,
-  Upload
+  Upload,
+  Info
 } from 'lucide-react';
 import { useStudentAuth } from '../../contexts/StudentAuthContext';
 import useFaceDetection from '../../hooks/useFaceDetection';
