@@ -299,10 +299,13 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
-  stuck_tasks: []
+  current_focus:
+    - "Document Upload Functionality (Step 4)"
+    - "AI Question Generation"
+  stuck_tasks:
+    - "Document Upload Functionality (Step 4)"
   test_all: false
-  test_priority: "high_first"
+  test_priority: "critical_first"
 
   - task: "Document Upload Endpoint"
     implemented: true
