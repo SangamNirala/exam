@@ -199,41 +199,7 @@ const AdminDashboardContent = () => {
               </div>
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-              <StatCard
-                icon={FileText}
-                title="Total Assessments"
-                value={dashboardStats.totalExams}
-                change="+12%"
-                trend="up"
-                color="blue"
-              />
-              <StatCard
-                icon={Activity}
-                title="Active Now"
-                value={dashboardStats.activeExams}
-                change="Live"
-                trend="up"
-                color="green"
-              />
-              <StatCard
-                icon={Users}
-                title="Students Evaluated"
-                value={dashboardStats.totalStudents.toLocaleString()}
-                change="+8.3%"
-                trend="up"
-                color="purple"
-              />
-              <StatCard
-                icon={Target}
-                title="Average Score"
-                value={`${dashboardStats.averageScore}%`}
-                change="+2.1%"
-                trend="up"
-                color="orange"
-              />
-            </div>
+
 
             {/* Quick Actions */}
             <div>
