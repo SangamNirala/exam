@@ -268,24 +268,43 @@ const QuestionCreationMethods = () => {
         throw new Error('No documents uploaded. Please upload documents first.');
       }
 
+      // Check if documents were successfully processed
+      const processedDocs = examData.uploadedDocuments.filter(doc => doc.status === 'uploaded' && doc.backendId);
+      if (processedDocs.length === 0) {
+        throw new Error('No successfully processed documents found. Please ensure documents are uploaded and processed correctly.');
+      }
+
       // Get the backend URL from environment
       const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
 
       addAILog({
         type: 'generation',
-        message: 'Preparing document content for analysis...',
+        message: 'Fetching document content from backend...',
         progress: 10
       });
 
-      // Extract document content - for now use document names as fallback since actual text extraction happens in backend
-      const documentContents = examData.uploadedDocuments.map(doc => {
-        // If document has extractedText (from backend processing), use it
-        if (doc.extractedText) {
-          return doc.extractedText;
+      // Fetch actual document content from backend
+      const documentContents = [];
+      for (const doc of processedDocs) {
+        try {
+          const docResponse = await fetch(`${backendUrl}/api/documents/${doc.backendId}`);
+          if (docResponse.ok) {
+            const docData = await docResponse.json();
+            if (docData.extracted_text) {
+              documentContents.push(docData.extracted_text);
+            } else {
+              // Fallback content if no extracted text
+              documentContents.push(`Document: ${doc.name}\nFile type: ${doc.type}\nThis document was uploaded for question generation but text extraction may have failed.`);
+            }
+          } else {
+            console.warn(`Failed to fetch content for document ${doc.backendId}`);
+            documentContents.push(`Document: ${doc.name}\nFile type: ${doc.type}\nContent could not be retrieved.`);
+          }
+        } catch (error) {
+          console.error(`Error fetching document ${doc.backendId}:`, error);
+          documentContents.push(`Document: ${doc.name}\nFile type: ${doc.type}\nError retrieving content.`);
         }
-        // Otherwise, create a basic description from filename
-        return `Document: ${doc.name}\nFile type: ${doc.type}\nSize: ${doc.size} bytes\nThis document was uploaded for question generation.`;
-      });
+      }
 
       addAILog({
         type: 'generation',
@@ -342,7 +361,7 @@ const QuestionCreationMethods = () => {
 
         addAILog({
           type: 'success',
-          message: `Successfully generated ${result.questions_generated} questions using AI`,
+          message: `Successfully generated ${result.questions_generated} questions using AI based on document content`,
           questionsGenerated: result.questions_generated,
           settings: aiGenerationSettings
         });
