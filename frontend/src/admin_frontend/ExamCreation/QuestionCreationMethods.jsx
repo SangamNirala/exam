@@ -282,17 +282,20 @@ const QuestionCreationMethods = () => {
       });
     }
 
-    // Simulate adding generated questions
+    // Generate questions based on uploaded documents and settings
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    mockGeneratedQuestions.forEach(question => {
+    const generatedQuestions = getQuestionTemplates();
+    const questionsToAdd = generatedQuestions.slice(0, aiGenerationSettings.questionCount);
+    
+    questionsToAdd.forEach(question => {
       addQuestion(question);
     });
 
     addAILog({
       type: 'success',
-      message: `Successfully generated ${mockGeneratedQuestions.length} questions`,
-      questionsGenerated: mockGeneratedQuestions.length,
+      message: `Successfully generated ${questionsToAdd.length} questions`,
+      questionsGenerated: questionsToAdd.length,
       settings: aiGenerationSettings
     });
 
