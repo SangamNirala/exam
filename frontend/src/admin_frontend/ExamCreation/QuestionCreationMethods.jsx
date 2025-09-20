@@ -555,42 +555,27 @@ const QuestionCreationMethods = () => {
 
       {/* Question Editor Modal */}
       {showQuestionEditor && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-6">
-          <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>
-                  {editingQuestion ? 'Edit Question' : 'Add New Question'}
-                </CardTitle>
-                <Button 
-                  variant="ghost" 
-                  onClick={() => {
-                    setShowQuestionEditor(false);
-                    setEditingQuestion(null);
-                  }}
-                >
-                  ×
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Settings className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">Question Editor</h3>
-                <p className="text-slate-600">Full question editor will be implemented in the next phase</p>
-                <Button 
-                  onClick={() => {
-                    setShowQuestionEditor(false);
-                    setEditingQuestion(null);
-                  }}
-                  className="mt-4"
-                >
-                  Close
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <QuestionEditor
+          question={editingQuestion}
+          onSave={(questionData) => {
+            if (editingQuestion) {
+              updateQuestion(editingQuestion.id, questionData);
+            } else {
+              const newQuestion = {
+                id: `q_${Date.now()}`,
+                ...questionData,
+                createdAt: new Date().toISOString()
+              };
+              addQuestion(newQuestion);
+            }
+            setShowQuestionEditor(false);
+            setEditingQuestion(null);
+          }}
+          onCancel={() => {
+            setShowQuestionEditor(false);
+            setEditingQuestion(null);
+          }}
+        />
       )}
     </div>
   );
