@@ -578,6 +578,392 @@ class BackendTester:
         except Exception as e:
             self.log_test("Gemini API Connectivity", False, f"Gemini API test failed: {str(e)}")
 
+    def test_token_validation(self):
+        """Test token validation endpoint - POST /api/tokens/validate"""
+        print("\n🎓 Testing Student Portal Token Validation...")
+        
+        # Test 1: Valid DEMO token
+        try:
+            valid_token_request = {
+                "token": "DEMO"
+            }
+            
+            response = self.session.post(f"{self.base_url}/tokens/validate", 
+                                       json=valid_token_request, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('valid') and data.get('exam_info'):
+                    exam_info = data['exam_info']
+                    self.log_test("Token Validation (DEMO)", True, 
+                                "DEMO token validated successfully and created demo assessment", 
+                                f"Exam: {exam_info.get('title')}, Questions: {exam_info.get('total_questions')}, Duration: {exam_info.get('duration')} min")
+                    
+                    # Store demo token info for later tests
+                    self.demo_token = "DEMO"
+                    self.demo_assessment_id = exam_info.get('assessment_id')
+                    return exam_info
+                else:
+                    self.log_test("Token Validation (DEMO)", False, 
+                                "DEMO token response invalid", 
+                                f"Response: {data}")
+            else:
+                self.log_test("Token Validation (DEMO)", False, 
+                            f"DEMO token validation failed with status {response.status_code}",
+                            f"Response: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Token Validation (DEMO)", False, f"Request failed: {str(e)}")
+        
+        # Test 2: Invalid token
+        try:
+            invalid_token_request = {
+                "token": "INVALID123"
+            }
+            
+            response = self.session.post(f"{self.base_url}/tokens/validate", 
+                                       json=invalid_token_request, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if not data.get('valid') and data.get('error_message'):
+                    self.log_test("Token Validation (Invalid)", True, 
+                                "Invalid token correctly rejected", 
+                                f"Error message: {data.get('error_message')}")
+                else:
+                    self.log_test("Token Validation (Invalid)", False, 
+                                "Invalid token should have been rejected", 
+                                f"Response: {data}")
+            else:
+                self.log_test("Token Validation (Invalid)", False, 
+                            f"Invalid token test failed with status {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Token Validation (Invalid)", False, f"Request failed: {str(e)}")
+        
+        # Test 3: Empty token
+        try:
+            empty_token_request = {
+                "token": ""
+            }
+            
+            response = self.session.post(f"{self.base_url}/tokens/validate", 
+                                       json=empty_token_request, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if not data.get('valid'):
+                    self.log_test("Token Validation (Empty)", True, 
+                                "Empty token correctly rejected", 
+                                f"Response handled gracefully")
+                else:
+                    self.log_test("Token Validation (Empty)", False, 
+                                "Empty token should have been rejected")
+            else:
+                self.log_test("Token Validation (Empty)", False, 
+                            f"Empty token test failed with status {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Token Validation (Empty)", False, f"Request failed: {str(e)}")
+        
+        # Test 4: Malformed request (missing token field)
+        try:
+            malformed_request = {
+                "invalid_field": "test"
+            }
+            
+            response = self.session.post(f"{self.base_url}/tokens/validate", 
+                                       json=malformed_request, timeout=10)
+            
+            if response.status_code == 422:  # FastAPI validation error
+                self.log_test("Token Validation (Malformed)", True, 
+                            "Malformed request correctly rejected with validation error", 
+                            f"Status: {response.status_code}")
+            else:
+                self.log_test("Token Validation (Malformed)", False, 
+                            f"Malformed request should return 422, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Token Validation (Malformed)", False, f"Request failed: {str(e)}")
+
+    def test_student_session_creation(self):
+        """Test student session creation endpoint - POST /api/students/sessions"""
+        print("\n👨‍🎓 Testing Student Session Creation...")
+        
+        # Test 1: Create session with valid token
+        if hasattr(self, 'demo_token'):
+            try:
+                # Note: The endpoint expects token as a query parameter or form data, not JSON
+                session_data = {
+                    "token": self.demo_token,
+                    "accessibility_settings": {
+                        "high_contrast": False,
+                        "large_text": False,
+                        "screen_reader": False
+                    }
+                }
+                
+                response = self.session.post(f"{self.base_url}/students/sessions", 
+                                           json=session_data, timeout=10)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get('success') and data.get('session_id'):
+                        self.student_session_id = data['session_id']
+                        self.log_test("Student Session Creation (Valid Token)", True, 
+                                    "Session created successfully with valid token", 
+                                    f"Session ID: {data['session_id']}")
+                        return data['session_id']
+                    else:
+                        self.log_test("Student Session Creation (Valid Token)", False, 
+                                    "Session creation response invalid", 
+                                    f"Response: {data}")
+                else:
+                    self.log_test("Student Session Creation (Valid Token)", False, 
+                                f"Session creation failed with status {response.status_code}",
+                                f"Response: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Student Session Creation (Valid Token)", False, f"Request failed: {str(e)}")
+        else:
+            self.log_test("Student Session Creation (Valid Token)", False, 
+                        "No valid demo token available from previous test")
+        
+        # Test 2: Create session with invalid token
+        try:
+            invalid_session_data = {
+                "token": "INVALID_TOKEN_123",
+                "accessibility_settings": {}
+            }
+            
+            response = self.session.post(f"{self.base_url}/students/sessions", 
+                                       json=invalid_session_data, timeout=10)
+            
+            if response.status_code == 400:
+                self.log_test("Student Session Creation (Invalid Token)", True, 
+                            "Invalid token correctly rejected for session creation", 
+                            f"Status: {response.status_code}")
+            else:
+                self.log_test("Student Session Creation (Invalid Token)", False, 
+                            f"Invalid token should return 400, got {response.status_code}",
+                            f"Response: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Student Session Creation (Invalid Token)", False, f"Request failed: {str(e)}")
+
+    def test_exam_submission(self):
+        """Test exam submission endpoint - POST /api/submissions"""
+        print("\n📝 Testing Exam Submission...")
+        
+        if hasattr(self, 'student_session_id') and hasattr(self, 'demo_assessment_id'):
+            try:
+                # Create realistic exam answers based on demo assessment questions
+                exam_answers = [
+                    {
+                        "question_id": str(uuid.uuid4()),  # We'll use dummy IDs for testing
+                        "answer": 0,  # MCQ answer (index)
+                        "time_spent": 120,  # 2 minutes
+                        "flagged_for_review": False
+                    },
+                    {
+                        "question_id": str(uuid.uuid4()),
+                        "answer": 0,  # Another MCQ answer
+                        "time_spent": 180,  # 3 minutes
+                        "flagged_for_review": False
+                    },
+                    {
+                        "question_id": str(uuid.uuid4()),
+                        "answer": "Supervised learning uses labeled training data to learn patterns, while unsupervised learning finds patterns in unlabeled data without predefined outcomes.",
+                        "time_spent": 300,  # 5 minutes
+                        "flagged_for_review": True
+                    }
+                ]
+                
+                submission_request = {
+                    "session_id": self.student_session_id,
+                    "answers": exam_answers,
+                    "total_time_spent": 600  # 10 minutes total
+                }
+                
+                response = self.session.post(f"{self.base_url}/submissions", 
+                                           json=submission_request, timeout=15)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get('success') and data.get('submission_id'):
+                        self.submission_id = data['submission_id']
+                        summary = data.get('summary', {})
+                        self.log_test("Exam Submission (Valid)", True, 
+                                    "Exam submitted successfully", 
+                                    f"Submission ID: {data['submission_id']}, Score: {summary.get('score', 0)}/{summary.get('max_score', 0)} ({summary.get('percentage', 0)}%)")
+                        return data['submission_id']
+                    else:
+                        self.log_test("Exam Submission (Valid)", False, 
+                                    "Submission response invalid", 
+                                    f"Response: {data}")
+                else:
+                    self.log_test("Exam Submission (Valid)", False, 
+                                f"Exam submission failed with status {response.status_code}",
+                                f"Response: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Exam Submission (Valid)", False, f"Request failed: {str(e)}")
+        else:
+            self.log_test("Exam Submission (Valid)", False, 
+                        "No valid session ID available from previous test")
+        
+        # Test 2: Submit with invalid session ID
+        try:
+            invalid_submission = {
+                "session_id": "invalid_session_123",
+                "answers": [
+                    {
+                        "question_id": str(uuid.uuid4()),
+                        "answer": 0,
+                        "time_spent": 60,
+                        "flagged_for_review": False
+                    }
+                ],
+                "total_time_spent": 60
+            }
+            
+            response = self.session.post(f"{self.base_url}/submissions", 
+                                       json=invalid_submission, timeout=10)
+            
+            if response.status_code == 404:
+                self.log_test("Exam Submission (Invalid Session)", True, 
+                            "Invalid session ID correctly rejected", 
+                            f"Status: {response.status_code}")
+            else:
+                self.log_test("Exam Submission (Invalid Session)", False, 
+                            f"Invalid session should return 404, got {response.status_code}",
+                            f"Response: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Exam Submission (Invalid Session)", False, f"Request failed: {str(e)}")
+
+    def test_submission_retrieval(self):
+        """Test submission details retrieval endpoint - GET /api/submissions/{submission_id}"""
+        print("\n📊 Testing Submission Details Retrieval...")
+        
+        if hasattr(self, 'submission_id'):
+            try:
+                response = self.session.get(f"{self.base_url}/submissions/{self.submission_id}", 
+                                          timeout=10)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    required_fields = ['submission_id', 'exam_title', 'score', 'max_score', 
+                                     'percentage', 'questions_attempted', 'total_questions', 
+                                     'time_spent_minutes', 'submission_time', 'status']
+                    
+                    missing_fields = [field for field in required_fields if field not in data]
+                    
+                    if not missing_fields:
+                        self.log_test("Submission Details Retrieval (Valid)", True, 
+                                    "Submission details retrieved successfully", 
+                                    f"Exam: {data.get('exam_title')}, Score: {data.get('score')}/{data.get('max_score')} ({data.get('percentage')}%), Time: {data.get('time_spent_minutes')} min")
+                    else:
+                        self.log_test("Submission Details Retrieval (Valid)", False, 
+                                    f"Missing required fields in response: {missing_fields}", 
+                                    f"Response: {data}")
+                else:
+                    self.log_test("Submission Details Retrieval (Valid)", False, 
+                                f"Submission retrieval failed with status {response.status_code}",
+                                f"Response: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Submission Details Retrieval (Valid)", False, f"Request failed: {str(e)}")
+        else:
+            self.log_test("Submission Details Retrieval (Valid)", False, 
+                        "No valid submission ID available from previous test")
+        
+        # Test 2: Retrieve with invalid submission ID
+        try:
+            invalid_submission_id = "invalid_submission_123"
+            response = self.session.get(f"{self.base_url}/submissions/{invalid_submission_id}", 
+                                      timeout=10)
+            
+            if response.status_code == 404:
+                self.log_test("Submission Details Retrieval (Invalid ID)", True, 
+                            "Invalid submission ID correctly rejected", 
+                            f"Status: {response.status_code}")
+            else:
+                self.log_test("Submission Details Retrieval (Invalid ID)", False, 
+                            f"Invalid submission ID should return 404, got {response.status_code}",
+                            f"Response: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Submission Details Retrieval (Invalid ID)", False, f"Request failed: {str(e)}")
+
+    def test_student_portal_workflow(self):
+        """Test complete student portal workflow end-to-end"""
+        print("\n🔄 Testing Complete Student Portal Workflow...")
+        
+        try:
+            # Step 1: Validate token
+            token_request = {"token": "DEMO"}
+            token_response = self.session.post(f"{self.base_url}/tokens/validate", 
+                                             json=token_request, timeout=30)
+            
+            if token_response.status_code != 200 or not token_response.json().get('valid'):
+                self.log_test("Student Portal Workflow", False, 
+                            "Token validation failed in workflow test")
+                return
+            
+            # Step 2: Create session
+            session_data = {"token": "DEMO", "accessibility_settings": {}}
+            session_response = self.session.post(f"{self.base_url}/students/sessions", 
+                                               json=session_data, timeout=10)
+            
+            if session_response.status_code != 200:
+                self.log_test("Student Portal Workflow", False, 
+                            "Session creation failed in workflow test")
+                return
+            
+            session_id = session_response.json().get('session_id')
+            
+            # Step 3: Submit exam
+            answers = [
+                {
+                    "question_id": str(uuid.uuid4()),
+                    "answer": 0,
+                    "time_spent": 120,
+                    "flagged_for_review": False
+                }
+            ]
+            
+            submission_data = {
+                "session_id": session_id,
+                "answers": answers,
+                "total_time_spent": 120
+            }
+            
+            submission_response = self.session.post(f"{self.base_url}/submissions", 
+                                                  json=submission_data, timeout=15)
+            
+            if submission_response.status_code != 200:
+                self.log_test("Student Portal Workflow", False, 
+                            "Exam submission failed in workflow test")
+                return
+            
+            submission_id = submission_response.json().get('submission_id')
+            
+            # Step 4: Retrieve submission details
+            details_response = self.session.get(f"{self.base_url}/submissions/{submission_id}", 
+                                              timeout=10)
+            
+            if details_response.status_code == 200:
+                self.log_test("Student Portal Workflow", True, 
+                            "Complete student portal workflow executed successfully", 
+                            "Token validation → Session creation → Exam submission → Results retrieval")
+            else:
+                self.log_test("Student Portal Workflow", False, 
+                            "Submission details retrieval failed in workflow test")
+                
+        except Exception as e:
+            self.log_test("Student Portal Workflow", False, f"Workflow test failed: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend tests including new document and AI endpoints"""
         print(f"🚀 Starting Backend API Tests for Assessment Management System")
