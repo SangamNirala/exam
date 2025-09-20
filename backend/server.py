@@ -653,8 +653,8 @@ async def validate_exam_token(request: TokenValidationRequest):
 async def create_student_session(token: str, accessibility_settings: Dict[str, bool] = {}):
     """Create a new student session for an exam."""
     try:
-        # Validate token first
-        token_doc = await db.exam_tokens.find_one({"token": token, "is_active": True})
+        # Validate token first (case-insensitive for demo token)
+        token_doc = await db.exam_tokens.find_one({"token": token.lower(), "is_active": True})
         if not token_doc:
             raise HTTPException(status_code=400, detail="Invalid token")
         
