@@ -47,6 +47,17 @@ const ExamCreationWizard = ({ onClose }) => {
     instructions: examData.instructions || ''
   });
 
+  // Sync local data with context data when context changes
+  useEffect(() => {
+    setLocalData({
+      title: examData.title || '',
+      description: examData.description || '',
+      subject: examData.subject || '',
+      duration: examData.duration || 60,
+      instructions: examData.instructions || ''
+    });
+  }, [examData.title, examData.description, examData.subject, examData.duration, examData.instructions]);
+
   const steps = [
     {
       id: 1,
