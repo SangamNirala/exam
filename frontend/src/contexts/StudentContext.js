@@ -3,14 +3,16 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 const StudentContext = createContext();
 
 const initialState = {
-  currentView: 'login', // login, dashboard, assessment, results
+  currentView: 'login', // login, instructions, countdown, assessment, submission, results, dashboard
   authToken: null,
-  examSession: null,
+  examInfo: null, // Store exam information from token validation
+  sessionId: null, // Track student session
   currentExam: null,
   currentQuestion: 0,
   answers: {},
   timeRemaining: 0,
   isPaused: false,
+  submissionResult: null, // Store submission results
   accessibility: {
     textToSpeech: false,
     speechToText: false,
