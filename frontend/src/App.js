@@ -40,6 +40,9 @@ const AppContent = () => {
     if (role === 'admin') {
       // Redirect to new admin dashboard
       window.location.href = '/admin';
+    } else if (role === 'student') {
+      // Redirect to new student portal
+      window.location.href = '/student-portal';
     } else {
       setCurrentView('dashboard');
     }
