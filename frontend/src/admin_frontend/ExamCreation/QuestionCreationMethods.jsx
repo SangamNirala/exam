@@ -383,7 +383,7 @@ const QuestionCreationMethods = () => {
       addAILog({
         type: 'generation',
         message: 'Processing generated questions...',
-        progress: 80
+        progress: 70
       });
 
       // Add the generated questions to the exam
