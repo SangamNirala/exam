@@ -139,6 +139,66 @@ class AIGenerationResponse(BaseModel):
     questions: List[Question]
     processing_log: List[str]
 
+# Student-specific Models
+class ExamToken(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    token: str
+    assessment_id: str
+    exam_title: str
+    duration_minutes: int
+    instructions: Optional[str] = None
+    is_active: bool = True
+    expires_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class StudentSession(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    token: str
+    assessment_id: str
+    student_id: Optional[str] = None  # Anonymous for now
+    start_time: datetime = Field(default_factory=datetime.utcnow)
+    end_time: Optional[datetime] = None
+    status: str = "active"  # active, completed, expired
+    accessibility_settings: Dict[str, bool] = {}
+
+class ExamAnswer(BaseModel):
+    question_id: str
+    answer: Any  # Can be string, int (for MCQ), or complex object
+    time_spent: Optional[int] = None  # seconds
+    flagged_for_review: bool = False
+
+class ExamSubmission(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    session_id: str
+    token: str
+    assessment_id: str
+    answers: List[ExamAnswer]
+    submission_time: datetime = Field(default_factory=datetime.utcnow)
+    total_time_spent: int  # seconds
+    questions_attempted: int
+    score: Optional[float] = None
+    max_score: Optional[float] = None
+    status: str = "submitted"  # submitted, graded
+
+# Request/Response Models
+class TokenValidationRequest(BaseModel):
+    token: str
+
+class TokenValidationResponse(BaseModel):
+    valid: bool
+    exam_info: Optional[Dict[str, Any]] = None
+    error_message: Optional[str] = None
+
+class SubmissionRequest(BaseModel):
+    session_id: str
+    answers: List[ExamAnswer]
+    total_time_spent: int
+
+class SubmissionResponse(BaseModel):
+    submission_id: str
+    success: bool
+    summary: Dict[str, Any]
+
 # Helper Functions
 async def extract_text_from_pdf(file_content: bytes) -> str:
     """Extract text from PDF file bytes."""
