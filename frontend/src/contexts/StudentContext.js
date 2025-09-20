@@ -240,6 +240,9 @@ export const StudentProvider = ({ children }) => {
     // Convenience methods
     setView: (view) => dispatch({ type: 'SET_VIEW', payload: view }),
     setAuthToken: (token) => dispatch({ type: 'SET_AUTH_TOKEN', payload: token }),
+    setExamInfo: (examInfo) => dispatch({ type: 'SET_EXAM_INFO', payload: examInfo }),
+    setSessionId: (sessionId) => dispatch({ type: 'SET_SESSION_ID', payload: sessionId }),
+    setSubmissionResult: (result) => dispatch({ type: 'SET_SUBMISSION_RESULT', payload: result }),
     setCurrentExam: (exam) => dispatch({ type: 'SET_CURRENT_EXAM', payload: exam }),
     updateAnswer: (questionId, answer) => dispatch({ type: 'UPDATE_ANSWER', payload: { questionId, answer } }),
     toggleAccessibility: (feature) => dispatch({ type: 'TOGGLE_ACCESSIBILITY', payload: feature }),
