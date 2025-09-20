@@ -361,7 +361,7 @@ const QuestionCreationMethods = () => {
       addAILog({
         type: 'generation',
         message: 'Generating questions with Gemini AI...',
-        progress: 50
+        progress: 40
       });
 
       // Call the backend API for AI question generation
