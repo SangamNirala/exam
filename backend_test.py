@@ -173,51 +173,139 @@ class BackendTester:
             self.log_test("Specific Assessment Retrieval", False, f"Request failed: {str(e)}")
             return None
     
-    def test_question_endpoints(self):
-        """Test for question management endpoints"""
-        endpoints_to_test = [
-            "/questions",
-            "/question",
-            "/quiz-questions",
-            "/assessment-questions"
-        ]
-        
-        found_endpoints = []
-        
-        for endpoint in endpoints_to_test:
-            try:
-                # Test GET
-                response = self.session.get(f"{self.base_url}{endpoint}", timeout=5)
-                if response.status_code != 404:
-                    found_endpoints.append(f"GET {endpoint}")
-                    self.log_test(f"Question Endpoint GET {endpoint}", True,
-                                f"Endpoint exists, status: {response.status_code}")
+    def test_question_management(self, assessment_id):
+        """Test question management endpoints - POST /api/assessments/{id}/questions"""
+        if not assessment_id:
+            self.log_test("Question Management", False, 
+                        "No assessment ID provided for question testing")
+            return None
+            
+        try:
+            # Test adding a multiple choice question
+            mcq_question = {
+                "type": "mcq",
+                "question": "What is the capital of France?",
+                "options": ["London", "Berlin", "Paris", "Madrid"],
+                "correct_answer": 2,
+                "difficulty": "beginner",
+                "estimated_time": 2,
+                "tags": ["geography", "capitals"],
+                "points": 1.0,
+                "explanation": "Paris is the capital and largest city of France."
+            }
+            
+            response = self.session.post(f"{self.base_url}/assessments/{assessment_id}/questions", 
+                                       json=mcq_question, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                question_id = data.get('id')
+                self.created_question_id = question_id  # Store for later tests
                 
-                # Test POST
-                test_data = {
-                    "question": "What is 2+2?", 
-                    "options": ["3", "4", "5", "6"],
-                    "correct_answer": "4"
+                self.log_test("Question Creation (MCQ)", True, 
+                            "MCQ question added successfully", 
+                            f"Question ID: {question_id}, Type: {data.get('type')}")
+                
+                # Test adding a descriptive question
+                descriptive_question = {
+                    "type": "descriptive",
+                    "question": "Explain the concept of photosynthesis in plants.",
+                    "difficulty": "intermediate",
+                    "estimated_time": 10,
+                    "tags": ["biology", "plants"],
+                    "points": 5.0,
+                    "max_words": 200,
+                    "explanation": "Students should explain the process by which plants convert light energy into chemical energy."
                 }
-                response = self.session.post(f"{self.base_url}{endpoint}", 
-                                           json=test_data, timeout=5)
-                if response.status_code != 404:
-                    found_endpoints.append(f"POST {endpoint}")
-                    self.log_test(f"Question Endpoint POST {endpoint}", True,
-                                f"Endpoint exists, status: {response.status_code}")
-                    
-            except Exception as e:
-                # Ignore connection errors for non-existent endpoints
-                pass
-        
-        if not found_endpoints:
-            self.log_test("Question Management Endpoints", False, 
-                        "No question management endpoints found",
-                        "Expected endpoints like /questions not available")
-        else:
-            self.log_test("Question Management Endpoints", True, 
-                        f"Found {len(found_endpoints)} question endpoints",
-                        f"Available: {', '.join(found_endpoints)}")
+                
+                response2 = self.session.post(f"{self.base_url}/assessments/{assessment_id}/questions", 
+                                           json=descriptive_question, timeout=10)
+                
+                if response2.status_code == 200:
+                    data2 = response2.json()
+                    self.log_test("Question Creation (Descriptive)", True, 
+                                "Descriptive question added successfully", 
+                                f"Question ID: {data2.get('id')}, Max words: {data2.get('max_words')}")
+                    return [question_id, data2.get('id')]
+                else:
+                    self.log_test("Question Creation (Descriptive)", False, 
+                                f"Descriptive question creation failed with status {response2.status_code}",
+                                f"Response: {response2.text}")
+                    return [question_id]
+            else:
+                self.log_test("Question Creation (MCQ)", False, 
+                            f"MCQ question creation failed with status {response.status_code}",
+                            f"Response: {response.text}")
+                return None
+                
+        except Exception as e:
+            self.log_test("Question Management", False, f"Request failed: {str(e)}")
+            return None
+    
+    def test_question_retrieval(self, assessment_id):
+        """Test question retrieval endpoint - GET /api/assessments/{id}/questions"""
+        if not assessment_id:
+            self.log_test("Question Retrieval", False, 
+                        "No assessment ID provided for question retrieval testing")
+            return []
+            
+        try:
+            response = self.session.get(f"{self.base_url}/assessments/{assessment_id}/questions", timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.log_test("Question Retrieval", True, 
+                            f"Retrieved {len(data)} questions successfully", 
+                            f"Question types: {[q.get('type') for q in data]}")
+                return data
+            else:
+                self.log_test("Question Retrieval", False, 
+                            f"Question retrieval failed with status {response.status_code}",
+                            f"Response: {response.text}")
+                return []
+                
+        except Exception as e:
+            self.log_test("Question Retrieval", False, f"Request failed: {str(e)}")
+            return []
+    
+    def test_question_update(self, assessment_id, question_id):
+        """Test question update endpoint - PUT /api/assessments/{id}/questions/{question_id}"""
+        if not assessment_id or not question_id:
+            self.log_test("Question Update", False, 
+                        "Missing assessment ID or question ID for update testing")
+            return False
+            
+        try:
+            updated_question = {
+                "type": "mcq",
+                "question": "What is the capital of France? (Updated)",
+                "options": ["London", "Berlin", "Paris", "Rome"],
+                "correct_answer": 2,
+                "difficulty": "beginner",
+                "estimated_time": 3,
+                "tags": ["geography", "capitals", "europe"],
+                "points": 1.5,
+                "explanation": "Paris is the capital and largest city of France. Updated explanation."
+            }
+            
+            response = self.session.put(f"{self.base_url}/assessments/{assessment_id}/questions/{question_id}", 
+                                      json=updated_question, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.log_test("Question Update", True, 
+                            "Question updated successfully", 
+                            f"Updated question: {data.get('question')[:50]}...")
+                return True
+            else:
+                self.log_test("Question Update", False, 
+                            f"Question update failed with status {response.status_code}",
+                            f"Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Question Update", False, f"Request failed: {str(e)}")
+            return False
     
     def test_database_connectivity(self):
         """Test if database operations are working through existing endpoints"""
