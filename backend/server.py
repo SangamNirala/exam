@@ -369,6 +369,102 @@ async def update_question_settings(assessment_id: str, settings: QuestionSetting
         return {"message": "Settings updated successfully"}
     return {"error": "Assessment not found"}
 
+# Document Processing Endpoints
+@api_router.post("/documents/upload")
+async def upload_document(file: UploadFile = File(...)):
+    """Upload and process a PDF document."""
+    if not file.filename.lower().endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported")
+    
+    try:
+        # Read file content
+        file_content = await file.read()
+        
+        # Extract text from PDF
+        extracted_text = await extract_text_from_pdf(file_content)
+        
+        # Create document info
+        document_info = DocumentInfo(
+            filename=file.filename,
+            content_type=file.content_type,
+            file_size=len(file_content),
+            processed=True,
+            extracted_text=extracted_text
+        )
+        
+        # Store document info in database
+        await db.documents.insert_one(document_info.dict())
+        
+        return {
+            "document_id": document_info.id,
+            "filename": document_info.filename,
+            "text_length": len(extracted_text),
+            "success": True,
+            "message": "Document processed successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to process document: {str(e)}")
+
+@api_router.post("/assessments/{assessment_id}/generate-questions", response_model=AIGenerationResponse)
+async def generate_questions_for_assessment(assessment_id: str, request: AIGenerationRequest):
+    """Generate questions using AI based on uploaded documents."""
+    try:
+        # Verify assessment exists
+        assessment = await db.assessments.find_one({"id": assessment_id})
+        if not assessment:
+            raise HTTPException(status_code=404, detail="Assessment not found")
+        
+        # Combine all document contents
+        combined_content = "\n\n".join(request.document_contents)
+        if not combined_content.strip():
+            raise HTTPException(status_code=400, detail="No document content provided")
+        
+        # Generate questions using Gemini AI
+        generated_questions = await generate_questions_with_gemini(
+            content=combined_content,
+            question_count=request.question_count,
+            difficulty=request.difficulty,
+            question_types=request.question_types
+        )
+        
+        # Add questions to assessment
+        questions_dict = [q.dict() for q in generated_questions]
+        await db.assessments.update_one(
+            {"id": assessment_id},
+            {
+                "$push": {"questions": {"$each": questions_dict}},
+                "$set": {"last_modified": datetime.utcnow()}
+            }
+        )
+        
+        processing_log = [
+            "Document content analyzed successfully",
+            f"Generated {len(generated_questions)} questions using Gemini AI",
+            "Questions added to assessment"
+        ]
+        
+        return AIGenerationResponse(
+            success=True,
+            questions_generated=len(generated_questions),
+            questions=generated_questions,
+            processing_log=processing_log
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error in generate_questions_for_assessment: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate questions: {str(e)}")
+
+@api_router.get("/documents/{document_id}")
+async def get_document_info(document_id: str):
+    """Get information about a processed document."""
+    document = await db.documents.find_one({"id": document_id})
+    if document:
+        return DocumentInfo(**document)
+    raise HTTPException(status_code=404, detail="Document not found")
+
 # Include the router in the main app
 app.include_router(api_router)
 
