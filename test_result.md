@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the backend API endpoints for the assessment creation system. User reported issues with question creation functionality, need to verify backend is working properly to support frontend question editor."
+user_problem_statement: "Test the new student portal backend endpoints I just created: POST /api/tokens/validate, POST /api/students/sessions, POST /api/submissions, GET /api/submissions/{submission_id}. Focus on token validation endpoint first as that's the core of the new student authentication flow."
 
 backend:
   - task: "Basic Backend Connectivity"
