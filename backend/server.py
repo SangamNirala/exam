@@ -24,6 +24,10 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+# Configure Gemini AI
+genai.configure(api_key=os.environ['GEMINI_API_KEY'])
+model = genai.GenerativeModel('gemini-2.0-flash-exp')
+
 # Create the main app without a prefix
 app = FastAPI()
 
