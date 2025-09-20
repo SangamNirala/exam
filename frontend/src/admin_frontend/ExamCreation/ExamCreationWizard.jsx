@@ -309,9 +309,19 @@ const ExamCreationWizard = ({ onClose }) => {
                 
                 {currentStep < totalSteps ? (
                   <Button
-                    onClick={nextStep}
+                    onClick={() => {
+                      // For step 1, update context with local data before proceeding
+                      if (currentStep === 1) {
+                        updateBasicInfo(localData);
+                        setTimeout(() => {
+                          nextStep();
+                        }, 0);
+                      } else {
+                        nextStep();
+                      }
+                    }}
                     className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
-                    disabled={Object.keys(validationErrors).length > 0}
+                    disabled={currentStep === 1 && (!localData.title?.trim() || localData.duration < 5 || localData.duration > 300)}
                   >
                     Next Step
                     <ArrowRight className="w-4 h-4 ml-2" />
