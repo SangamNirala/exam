@@ -90,47 +90,88 @@ class BackendTester:
         except Exception as e:
             self.log_test("POST Status Endpoint", False, f"Request failed: {str(e)}")
     
-    def test_assessment_endpoints(self):
-        """Test for assessment/exam creation endpoints"""
-        endpoints_to_test = [
-            "/assessments",
-            "/exams", 
-            "/assessment",
-            "/exam"
-        ]
-        
-        found_endpoints = []
-        
-        for endpoint in endpoints_to_test:
-            try:
-                # Test GET
-                response = self.session.get(f"{self.base_url}{endpoint}", timeout=5)
-                if response.status_code != 404:
-                    found_endpoints.append(f"GET {endpoint}")
-                    self.log_test(f"Assessment Endpoint GET {endpoint}", True,
-                                f"Endpoint exists, status: {response.status_code}")
+    def test_assessment_creation(self):
+        """Test assessment creation endpoint - POST /api/assessments"""
+        try:
+            test_assessment = {
+                "title": "Sample Mathematics Assessment",
+                "description": "A comprehensive test covering basic mathematics concepts",
+                "subject": "Mathematics",
+                "duration": 90,
+                "instructions": "Please read all questions carefully before answering",
+                "exam_type": "mcq",
+                "difficulty": "intermediate",
+                "content_source": "manual"
+            }
+            
+            response = self.session.post(f"{self.base_url}/assessments", 
+                                       json=test_assessment, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                assessment_id = data.get('id')
+                self.created_assessment_id = assessment_id  # Store for later tests
                 
-                # Test POST
-                test_data = {"name": "test_assessment", "description": "test"}
-                response = self.session.post(f"{self.base_url}{endpoint}", 
-                                           json=test_data, timeout=5)
-                if response.status_code != 404:
-                    found_endpoints.append(f"POST {endpoint}")
-                    self.log_test(f"Assessment Endpoint POST {endpoint}", True,
-                                f"Endpoint exists, status: {response.status_code}")
-                    
-            except Exception as e:
-                # Ignore connection errors for non-existent endpoints
-                pass
-        
-        if not found_endpoints:
-            self.log_test("Assessment Endpoints", False, 
-                        "No assessment/exam creation endpoints found",
-                        "Expected endpoints like /assessments, /exams not available")
-        else:
-            self.log_test("Assessment Endpoints", True, 
-                        f"Found {len(found_endpoints)} assessment endpoints",
-                        f"Available: {', '.join(found_endpoints)}")
+                self.log_test("Assessment Creation", True, 
+                            "Assessment created successfully", 
+                            f"Created assessment with ID: {assessment_id}, Title: {data.get('title')}")
+                return assessment_id
+            else:
+                self.log_test("Assessment Creation", False, 
+                            f"Assessment creation failed with status {response.status_code}",
+                            f"Response: {response.text}")
+                return None
+                
+        except Exception as e:
+            self.log_test("Assessment Creation", False, f"Request failed: {str(e)}")
+            return None
+    
+    def test_assessment_retrieval(self):
+        """Test assessment retrieval endpoint - GET /api/assessments"""
+        try:
+            response = self.session.get(f"{self.base_url}/assessments", timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.log_test("Assessment Retrieval", True, 
+                            f"Retrieved {len(data)} assessments successfully", 
+                            f"Assessments found: {[a.get('title', 'Untitled') for a in data[:3]]}")
+                return data
+            else:
+                self.log_test("Assessment Retrieval", False, 
+                            f"Assessment retrieval failed with status {response.status_code}",
+                            f"Response: {response.text}")
+                return []
+                
+        except Exception as e:
+            self.log_test("Assessment Retrieval", False, f"Request failed: {str(e)}")
+            return []
+    
+    def test_specific_assessment_retrieval(self, assessment_id):
+        """Test specific assessment retrieval - GET /api/assessments/{id}"""
+        if not assessment_id:
+            self.log_test("Specific Assessment Retrieval", False, 
+                        "No assessment ID provided for testing")
+            return None
+            
+        try:
+            response = self.session.get(f"{self.base_url}/assessments/{assessment_id}", timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.log_test("Specific Assessment Retrieval", True, 
+                            f"Retrieved specific assessment successfully", 
+                            f"Assessment: {data.get('title')}, Questions: {len(data.get('questions', []))}")
+                return data
+            else:
+                self.log_test("Specific Assessment Retrieval", False, 
+                            f"Specific assessment retrieval failed with status {response.status_code}",
+                            f"Response: {response.text}")
+                return None
+                
+        except Exception as e:
+            self.log_test("Specific Assessment Retrieval", False, f"Request failed: {str(e)}")
+            return None
     
     def test_question_endpoints(self):
         """Test for question management endpoints"""
