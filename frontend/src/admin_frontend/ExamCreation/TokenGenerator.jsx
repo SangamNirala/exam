@@ -75,14 +75,98 @@ const TokenGenerator = () => {
     setIsGenerating(false);
   };
 
-  const copyToken = (token) => {
-    navigator.clipboard.writeText(token);
-    // You could add a toast notification here
+  const copyToken = async (token) => {
+    try {
+      // Try modern Clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(token);
+        console.log('Token copied to clipboard using Clipboard API');
+        return;
+      }
+    } catch (err) {
+      console.warn('Clipboard API failed, trying fallback:', err);
+    }
+
+    // Fallback method using document.execCommand
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = token;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (successful) {
+        console.log('Token copied to clipboard using execCommand');
+        return;
+      }
+    } catch (err) {
+      console.warn('execCommand fallback failed:', err);
+    }
+
+    // Final fallback - select the token text for manual copying
+    try {
+      const tokenElement = document.querySelector(`[data-token="${token}"]`);
+      if (tokenElement) {
+        const range = document.createRange();
+        range.selectNode(tokenElement);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        console.log('Token text selected for manual copying');
+        alert('Token selected! Press Ctrl+C (or Cmd+C on Mac) to copy.');
+      } else {
+        // Ultimate fallback - show the token in an alert
+        alert(`Token: ${token}\n\nPlease copy this token manually.`);
+      }
+    } catch (err) {
+      console.error('All copy methods failed:', err);
+      alert(`Token: ${token}\n\nPlease copy this token manually.`);
+    }
   };
 
-  const copyAllTokens = () => {
+  const copyAllTokens = async () => {
     const tokenList = tokens.map(t => t.token).join('\n');
-    navigator.clipboard.writeText(tokenList);
+    
+    try {
+      // Try modern Clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(tokenList);
+        console.log('All tokens copied to clipboard using Clipboard API');
+        return;
+      }
+    } catch (err) {
+      console.warn('Clipboard API failed for all tokens, trying fallback:', err);
+    }
+
+    // Fallback method using document.execCommand
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = tokenList;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (successful) {
+        console.log('All tokens copied to clipboard using execCommand');
+        return;
+      }
+    } catch (err) {
+      console.warn('execCommand fallback failed for all tokens:', err);
+    }
+
+    // Final fallback - show all tokens in an alert
+    alert(`All Tokens:\n\n${tokenList}\n\nPlease copy these tokens manually.`);
   };
 
   const exportTokens = () => {
