@@ -127,7 +127,7 @@ const DocumentUploader = () => {
   const uploadFile = async (file) => {
     const fileId = Date.now() + Math.random();
     
-    // Simulate upload progress
+    // Start upload progress tracking
     setUploadProgress(prev => ({ ...prev, [fileId]: 0 }));
     
     const document = {
@@ -137,24 +137,77 @@ const DocumentUploader = () => {
       type: file.type,
       uploadedAt: new Date().toISOString(),
       status: 'uploading',
-      processingStatus: null
+      processingStatus: null,
+      extractedText: null
     };
 
-    // Simulate progressive upload
-    for (let progress = 0; progress <= 100; progress += 20) {
-      await new Promise(resolve => setTimeout(resolve, 200));
-      setUploadProgress(prev => ({ ...prev, [fileId]: progress }));
-    }
+    try {
+      // Get the backend URL from environment
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+      
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('file', file);
 
-    document.status = 'uploaded';
-    addDocument(document);
-    
-    // Remove from upload progress
-    setUploadProgress(prev => {
-      const newProgress = { ...prev };
-      delete newProgress[fileId];
-      return newProgress;
-    });
+      // Update progress during upload
+      setUploadProgress(prev => ({ ...prev, [fileId]: 30 }));
+
+      // Upload file to backend
+      const response = await fetch(`${backendUrl}/api/documents/upload`, {
+        method: 'POST',
+        body: formData
+      });
+
+      setUploadProgress(prev => ({ ...prev, [fileId]: 70 }));
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || `Upload failed with status ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      // Update document with backend response
+      document.id = result.document_id;
+      document.status = 'uploaded';
+      document.processingStatus = 'processed';
+      document.extractedText = result.text_length ? 'Text extracted successfully' : 'No text extracted';
+      document.backendId = result.document_id;
+
+      setUploadProgress(prev => ({ ...prev, [fileId]: 100 }));
+      
+      // Add document to context
+      addDocument(document);
+      
+      // Remove from upload progress after short delay
+      setTimeout(() => {
+        setUploadProgress(prev => {
+          const newProgress = { ...prev };
+          delete newProgress[fileId];
+          return newProgress;
+        });
+      }, 1000);
+
+    } catch (error) {
+      console.error('File upload error:', error);
+      
+      // Update document status to reflect error
+      document.status = 'error';
+      document.processingStatus = error.message;
+      
+      // Still add to context so user can see the error
+      addDocument(document);
+      
+      // Remove from upload progress
+      setUploadProgress(prev => {
+        const newProgress = { ...prev };
+        delete newProgress[fileId];
+        return newProgress;
+      });
+      
+      // Show error to user
+      alert(`Failed to upload ${file.name}: ${error.message}`);
+    }
   };
 
   const processDocumentWithAI = async (documentId) => {
