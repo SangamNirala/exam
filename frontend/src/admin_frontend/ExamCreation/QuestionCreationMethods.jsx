@@ -312,9 +312,45 @@ const QuestionCreationMethods = () => {
         progress: 30
       });
 
+      // Create or get assessment ID
+      let assessmentId = examData.id;
+      if (!assessmentId) {
+        // Create a temporary assessment for question generation
+        const assessmentData = {
+          title: examData.title || 'AI Generated Assessment',
+          description: 'Assessment created for AI question generation',
+          subject: examData.subject || 'General',
+          duration: examData.duration || 60,
+          exam_type: examData.examType || 'mcq',
+          difficulty: examData.difficulty || aiGenerationSettings.difficulty,
+          content_source: examData.contentSource || 'ai'
+        };
+
+        const assessmentResponse = await fetch(`${backendUrl}/api/assessments`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(assessmentData)
+        });
+
+        if (assessmentResponse.ok) {
+          const assessmentResult = await assessmentResponse.json();
+          assessmentId = assessmentResult.id;
+          
+          addAILog({
+            type: 'info',
+            message: 'Created assessment for question generation',
+            progress: 35
+          });
+        } else {
+          throw new Error('Failed to create assessment for question generation');
+        }
+      }
+
       // Prepare the AI generation request
       const generationRequest = {
-        assessment_id: examData.id || 'temp-assessment-' + Date.now(),
+        assessment_id: assessmentId,
         document_contents: documentContents,
         question_count: aiGenerationSettings.questionCount,
         difficulty: aiGenerationSettings.difficulty,
