@@ -348,9 +348,13 @@ class BackendTester:
     
     def run_all_tests(self):
         """Run all backend tests"""
-        print(f"🚀 Starting Backend API Tests")
+        print(f"🚀 Starting Backend API Tests for Assessment Management System")
         print(f"📡 Testing against: {self.base_url}")
         print("=" * 60)
+        
+        # Initialize variables to store created IDs
+        self.created_assessment_id = None
+        self.created_question_id = None
         
         # Test basic connectivity first
         if not self.test_connectivity():
@@ -361,9 +365,31 @@ class BackendTester:
         self.test_status_endpoints()
         self.test_database_connectivity()
         
-        # Test for assessment system endpoints
-        self.test_assessment_endpoints()
-        self.test_question_endpoints()
+        # Test assessment management system endpoints
+        print("\n🎯 Testing Assessment Management System...")
+        
+        # 1. Test assessment creation
+        assessment_id = self.test_assessment_creation()
+        
+        # 2. Test assessment retrieval
+        self.test_assessment_retrieval()
+        
+        # 3. Test specific assessment retrieval
+        if assessment_id:
+            self.test_specific_assessment_retrieval(assessment_id)
+        
+        # 4. Test question management
+        question_ids = []
+        if assessment_id:
+            question_ids = self.test_question_management(assessment_id) or []
+        
+        # 5. Test question retrieval
+        if assessment_id:
+            self.test_question_retrieval(assessment_id)
+        
+        # 6. Test question update
+        if assessment_id and question_ids:
+            self.test_question_update(assessment_id, question_ids[0])
         
         # Summary
         print("\n" + "=" * 60)
@@ -386,6 +412,8 @@ class BackendTester:
             print(f"\n🚨 CRITICAL ISSUES FOUND:")
             for failure in critical_failures:
                 print(f"   • {failure['test']}: {failure['message']}")
+        else:
+            print(f"\n🎉 All critical assessment management endpoints are working!")
         
         return failed == 0
 
