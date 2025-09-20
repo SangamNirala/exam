@@ -115,7 +115,7 @@ backend:
     status_history:
         - working: true
           agent: "testing"
-          comment: "Backend server is responding correctly at https://smart-exam-builder.preview.emergentagent.com/api. Root endpoint returns {'message': 'Hello World'}"
+          comment: "Backend server is responding correctly at https://exam-access.preview.emergentagent.com/api. Root endpoint returns {'message': 'Hello World'}"
 
   - task: "Status Check Endpoints"
     implemented: true
