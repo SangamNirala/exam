@@ -525,6 +525,264 @@ async def get_document_info(document_id: str):
         return DocumentInfo(**document)
     raise HTTPException(status_code=404, detail="Document not found")
 
+# ===============================
+# STUDENT PORTAL ENDPOINTS
+# ===============================
+
+@api_router.post("/tokens/validate", response_model=TokenValidationResponse)
+async def validate_exam_token(request: TokenValidationRequest):
+    """Validate an exam token and return exam information."""
+    try:
+        # First check if token exists in exam_tokens collection
+        token_doc = await db.exam_tokens.find_one({"token": request.token, "is_active": True})
+        
+        if not token_doc:
+            # For demo purposes, create a demo token if it doesn't exist
+            if request.token.lower() == "demo":
+                # Create a demo assessment if it doesn't exist
+                demo_assessment = await db.assessments.find_one({"title": "Demo Assessment"})
+                if not demo_assessment:
+                    demo_questions = [
+                        {
+                            "id": str(uuid.uuid4()),
+                            "type": "mcq",
+                            "question": "What does AI stand for?",
+                            "options": ["Artificial Intelligence", "Advanced Integration", "Automated Information", "Applied Innovation"],
+                            "correct_answer": 0,
+                            "difficulty": "beginner",
+                            "estimated_time": 2,
+                            "tags": ["AI", "basics"],
+                            "points": 1.0
+                        },
+                        {
+                            "id": str(uuid.uuid4()),
+                            "type": "mcq", 
+                            "question": "Which of the following is a machine learning technique?",
+                            "options": ["Neural Networks", "Database Management", "File Compression", "Web Browsing"],
+                            "correct_answer": 0,
+                            "difficulty": "intermediate",
+                            "estimated_time": 3,
+                            "tags": ["machine learning", "techniques"],
+                            "points": 1.0
+                        },
+                        {
+                            "id": str(uuid.uuid4()),
+                            "type": "descriptive",
+                            "question": "Explain the difference between supervised and unsupervised learning in 2-3 sentences.",
+                            "difficulty": "intermediate",
+                            "estimated_time": 5,
+                            "tags": ["machine learning", "concepts"],
+                            "points": 2.0,
+                            "max_words": 100
+                        }
+                    ]
+                    
+                    demo_assessment_data = {
+                        "id": str(uuid.uuid4()),
+                        "title": "Demo Assessment: AI Fundamentals",
+                        "description": "A sample assessment to demonstrate the platform capabilities",
+                        "subject": "Computer Science",
+                        "duration": 30,
+                        "instructions": "This is a demo assessment. Answer all questions to the best of your ability.",
+                        "exam_type": "mixed",
+                        "difficulty": "intermediate", 
+                        "content_source": "demo",
+                        "questions": demo_questions,
+                        "status": "published",
+                        "created_at": datetime.utcnow(),
+                        "last_modified": datetime.utcnow()
+                    }
+                    
+                    await db.assessments.insert_one(demo_assessment_data)
+                    demo_assessment = demo_assessment_data
+                
+                # Create demo token
+                demo_token_data = {
+                    "id": str(uuid.uuid4()),
+                    "token": "demo",
+                    "assessment_id": demo_assessment["id"],
+                    "exam_title": demo_assessment["title"],
+                    "duration_minutes": demo_assessment["duration"],
+                    "instructions": demo_assessment.get("instructions"),
+                    "is_active": True,
+                    "created_at": datetime.utcnow()
+                }
+                
+                await db.exam_tokens.insert_one(demo_token_data)
+                token_doc = demo_token_data
+            else:
+                return TokenValidationResponse(
+                    valid=False,
+                    error_message="Invalid token. Please check and try again."
+                )
+        
+        # Get assessment details
+        assessment = await db.assessments.find_one({"id": token_doc["assessment_id"]})
+        if not assessment:
+            return TokenValidationResponse(
+                valid=False,
+                error_message="Assessment not found for this token."
+            )
+        
+        exam_info = {
+            "token": token_doc["token"],
+            "assessment_id": assessment["id"],
+            "title": assessment["title"],
+            "description": assessment.get("description", ""),
+            "duration": assessment["duration"],
+            "total_questions": len(assessment.get("questions", [])),
+            "exam_type": assessment.get("exam_type", "mixed"),
+            "difficulty": assessment.get("difficulty", "intermediate"),
+            "instructions": assessment.get("instructions", ""),
+            "questions": assessment.get("questions", [])
+        }
+        
+        return TokenValidationResponse(
+            valid=True,
+            exam_info=exam_info
+        )
+        
+    except Exception as e:
+        logging.error(f"Error validating token: {str(e)}")
+        return TokenValidationResponse(
+            valid=False,
+            error_message="An error occurred while validating the token."
+        )
+
+@api_router.post("/students/sessions")
+async def create_student_session(token: str, accessibility_settings: Dict[str, bool] = {}):
+    """Create a new student session for an exam."""
+    try:
+        # Validate token first
+        token_doc = await db.exam_tokens.find_one({"token": token, "is_active": True})
+        if not token_doc:
+            raise HTTPException(status_code=400, detail="Invalid token")
+        
+        session_data = {
+            "id": str(uuid.uuid4()),
+            "token": token,
+            "assessment_id": token_doc["assessment_id"],
+            "start_time": datetime.utcnow(),
+            "status": "active",
+            "accessibility_settings": accessibility_settings
+        }
+        
+        await db.student_sessions.insert_one(session_data)
+        
+        return {
+            "session_id": session_data["id"],
+            "success": True,
+            "message": "Session created successfully"
+        }
+        
+    except Exception as e:
+        logging.error(f"Error creating student session: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create session")
+
+@api_router.post("/submissions", response_model=SubmissionResponse)
+async def submit_exam(request: SubmissionRequest):
+    """Submit exam answers and generate results."""
+    try:
+        # Get session info
+        session = await db.student_sessions.find_one({"id": request.session_id})
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        # Get assessment to calculate score
+        assessment = await db.assessments.find_one({"id": session["assessment_id"]})
+        if not assessment:
+            raise HTTPException(status_code=404, detail="Assessment not found")
+        
+        # Calculate score for MCQ questions
+        total_score = 0
+        max_score = 0
+        questions_map = {q["id"]: q for q in assessment.get("questions", [])}
+        
+        for answer in request.answers:
+            question = questions_map.get(answer.question_id)
+            if question:
+                max_score += question.get("points", 1.0)
+                if question["type"] == "mcq" and answer.answer == question.get("correct_answer"):
+                    total_score += question.get("points", 1.0)
+                elif question["type"] == "descriptive":
+                    # For descriptive questions, give partial score (would need AI grading in real scenario)
+                    total_score += question.get("points", 1.0) * 0.7  # Assume 70% for demo
+        
+        # Create submission record
+        submission_data = {
+            "id": str(uuid.uuid4()),
+            "session_id": request.session_id,
+            "token": session["token"],
+            "assessment_id": session["assessment_id"],
+            "answers": [answer.dict() for answer in request.answers],
+            "submission_time": datetime.utcnow(),
+            "total_time_spent": request.total_time_spent,
+            "questions_attempted": len(request.answers),
+            "score": total_score,
+            "max_score": max_score,
+            "status": "submitted"
+        }
+        
+        await db.exam_submissions.insert_one(submission_data)
+        
+        # Update session status
+        await db.student_sessions.update_one(
+            {"id": request.session_id},
+            {
+                "$set": {
+                    "status": "completed",
+                    "end_time": datetime.utcnow()
+                }
+            }
+        )
+        
+        # Generate summary
+        summary = {
+            "exam_title": assessment["title"],
+            "total_questions": len(assessment.get("questions", [])),
+            "questions_attempted": len(request.answers),
+            "score": total_score,
+            "max_score": max_score,
+            "percentage": round((total_score / max_score * 100) if max_score > 0 else 0, 1),
+            "time_spent_minutes": round(request.total_time_spent / 60, 1),
+            "submission_time": submission_data["submission_time"].isoformat()
+        }
+        
+        return SubmissionResponse(
+            submission_id=submission_data["id"],
+            success=True,
+            summary=summary
+        )
+        
+    except Exception as e:
+        logging.error(f"Error submitting exam: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to submit exam")
+
+@api_router.get("/submissions/{submission_id}")
+async def get_submission_details(submission_id: str):
+    """Get detailed submission results."""
+    submission = await db.exam_submissions.find_one({"id": submission_id})
+    if not submission:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    
+    # Get assessment details for complete summary
+    assessment = await db.assessments.find_one({"id": submission["assessment_id"]})
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+    
+    return {
+        "submission_id": submission["id"],
+        "exam_title": assessment["title"],
+        "score": submission["score"],
+        "max_score": submission["max_score"],
+        "percentage": round((submission["score"] / submission["max_score"] * 100) if submission["max_score"] > 0 else 0, 1),
+        "questions_attempted": submission["questions_attempted"],
+        "total_questions": len(assessment.get("questions", [])),
+        "time_spent_minutes": round(submission["total_time_spent"] / 60, 1),
+        "submission_time": submission["submission_time"],
+        "status": submission["status"]
+    }
+
 # Include the router in the main app
 app.include_router(api_router)
 
