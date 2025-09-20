@@ -209,6 +209,78 @@ const FaceCapture = () => {
           </div>
         );
 
+      case 'demo-mode':
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Camera className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">Demo Mode Active</h3>
+              <p className="text-slate-600 mb-6">
+                Camera not available in this environment. Click below to simulate face capture for demo purposes.
+              </p>
+            </div>
+
+            {/* Simulated Camera Area */}
+            <div className="relative bg-gradient-to-br from-slate-700 to-slate-900 rounded-xl overflow-hidden">
+              <div className="aspect-video flex items-center justify-center">
+                <div className="text-center text-white">
+                  <div className="w-24 h-24 border-2 border-dashed border-white/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Camera className="w-12 h-12" />
+                  </div>
+                  <p className="text-lg font-medium mb-2">Simulated Camera Feed</p>
+                  <p className="text-white/70 text-sm">Demo mode - no actual camera required</p>
+                </div>
+              </div>
+              
+              {/* Demo Capture Button */}
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+                <Button
+                  onClick={() => {
+                    setCaptureStep('captured');
+                    // Simulate captured image
+                    const demoImageData = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNjM2NmYxIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5EZW1vIEZhY2UgQ2FwdHVyZTwvdGV4dD48L3N2Zz4=';
+                    setCapturedImage(demoImageData);
+                    completeFaceCapture(demoImageData);
+                  }}
+                  className="rounded-full w-16 h-16 p-0 bg-blue-600 hover:bg-blue-700"
+                >
+                  <Camera className="w-8 h-8" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Demo Instructions */}
+            <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+              <div className="flex items-start space-x-3">
+                <Info className="w-6 h-6 text-blue-600 mt-0.5" />
+                <div>
+                  <h4 className="font-semibold text-blue-800 mb-2">Demo Mode Instructions</h4>
+                  <p className="text-blue-700 text-sm mb-4">
+                    Since no camera is detected, you can simulate the face capture process. 
+                    Click the camera button above to capture a demo image and proceed with verification.
+                  </p>
+                  <div className="space-y-2 text-sm text-blue-600">
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Demo face data will be used</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Verification will be simulated</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Complete authentication flow available</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       case 'error':
         return (
           <div className="text-center py-12">
