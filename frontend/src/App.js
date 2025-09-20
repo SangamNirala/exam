@@ -16,13 +16,16 @@ function App() {
       <AppStateProvider>
         <AdminProvider>
           <StudentProvider> 
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<AppContent />} />
-                <Route path="/dashboard/:tab?" element={<AppContent />} />
-                <Route path="/admin" element={<NewAdminDashboard />} />
-              </Routes>
-            </BrowserRouter>
+            <StudentAuthProvider>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<AppContent />} />
+                  <Route path="/dashboard/:tab?" element={<AppContent />} />
+                  <Route path="/admin" element={<NewAdminDashboard />} />
+                  <Route path="/student-portal" element={<AuthenticationFlow />} />
+                </Routes>
+              </BrowserRouter>
+            </StudentAuthProvider>
           </StudentProvider>
         </AdminProvider>
       </AppStateProvider>
