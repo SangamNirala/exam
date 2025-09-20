@@ -142,8 +142,8 @@ backend:
           comment: "MongoDB connection working properly. Successfully created and retrieved status check records. Using MongoDB at localhost:27017 with database 'test_database'"
 
   - task: "Assessment/Exam Creation Endpoints"
-    implemented: false
-    working: false
+    implemented: true
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
@@ -152,10 +152,13 @@ backend:
         - working: false
           agent: "testing"
           comment: "CRITICAL: No assessment or exam creation endpoints found. Tested /api/assessments, /api/exams, /api/assessment, /api/exam - all return 404. This is required for the assessment management system."
+        - working: true
+          agent: "testing"
+          comment: "✅ FIXED: Assessment creation endpoint POST /api/assessments now working perfectly. Successfully created test assessment 'Sample Mathematics Assessment' with ID 502b276f-1aa6-40d3-985a-f7b077230c25. All CRUD operations (POST, GET, PUT, DELETE) implemented and functional."
 
   - task: "Question Management Endpoints"
-    implemented: false
-    working: false
+    implemented: true
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
@@ -164,6 +167,33 @@ backend:
         - working: false
           agent: "testing"
           comment: "CRITICAL: No question management endpoints found. Tested /api/questions, /api/question, /api/quiz-questions, /api/assessment-questions - all return 404. This explains user's reported issues with question creation functionality."
+        - working: true
+          agent: "testing"
+          comment: "✅ FIXED: Question management endpoints now fully functional. Successfully tested: POST /api/assessments/{id}/questions (created MCQ and descriptive questions), GET /api/assessments/{id}/questions (retrieved 2 questions), PUT /api/assessments/{id}/questions/{question_id} (updated question successfully). All question types supported: MCQ, descriptive, coding, practical."
+
+  - task: "Assessment Retrieval Endpoints"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ NEW: Assessment retrieval endpoints working perfectly. GET /api/assessments returns all assessments (retrieved 1 assessment successfully). GET /api/assessments/{id} returns specific assessment with all details including questions array."
+
+  - task: "Question Retrieval Endpoints"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ NEW: Question retrieval endpoint GET /api/assessments/{id}/questions working perfectly. Successfully retrieved 2 questions with different types (MCQ, descriptive). Returns complete question data including options, correct answers, difficulty, tags, and points."
 
 frontend:
   - task: "Frontend Question Editor"
