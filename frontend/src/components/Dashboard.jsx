@@ -208,7 +208,7 @@ const Dashboard = ({ onBackToLanding }) => {
               : '-translate-x-full opacity-0 pointer-events-none'
           }`}
         >
-          <StudentDashboard />
+          <AuthenticationFlow />
         </div>
       </main>
 
