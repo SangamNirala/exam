@@ -693,18 +693,13 @@ class BackendTester:
         # Test 1: Create session with valid token
         if hasattr(self, 'demo_token'):
             try:
-                # Note: The endpoint expects token as a query parameter or form data, not JSON
-                session_data = {
-                    "token": self.demo_token,
-                    "accessibility_settings": {
-                        "high_contrast": False,
-                        "large_text": False,
-                        "screen_reader": False
-                    }
+                # The endpoint expects token as query parameter and accessibility_settings as query parameter
+                params = {
+                    "token": self.demo_token
                 }
                 
                 response = self.session.post(f"{self.base_url}/students/sessions", 
-                                           json=session_data, timeout=10)
+                                           params=params, timeout=10)
                 
                 if response.status_code == 200:
                     data = response.json()
@@ -731,13 +726,12 @@ class BackendTester:
         
         # Test 2: Create session with invalid token
         try:
-            invalid_session_data = {
-                "token": "INVALID_TOKEN_123",
-                "accessibility_settings": {}
+            invalid_params = {
+                "token": "INVALID_TOKEN_123"
             }
             
             response = self.session.post(f"{self.base_url}/students/sessions", 
-                                       json=invalid_session_data, timeout=10)
+                                       params=invalid_params, timeout=10)
             
             if response.status_code == 400:
                 self.log_test("Student Session Creation (Invalid Token)", True, 
