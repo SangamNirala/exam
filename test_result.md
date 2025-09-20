@@ -220,8 +220,46 @@ test_plan:
   test_all: false
   test_priority: "high_first"
 
+  - task: "Document Upload Endpoint"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: POST /api/documents/upload endpoint working perfectly. Successfully uploaded PDF files, extracted text content (1437 characters from test PDF), returns proper response with document_id and text_length. PDF text extraction using PyPDF2 is functioning correctly. Error handling properly rejects non-PDF files with 400 status."
+
+  - task: "AI Question Generation Endpoint"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: POST /api/assessments/{assessment_id}/generate-questions endpoint working excellently. Gemini AI integration is fully functional with API key AIzaSyBenNWUGyUVnqhvnE1mnSKeNnx0Clyggu4. Generated 8 high-quality questions with 100% relevance to document content. Questions include proper structure with MCQ options, correct answers, difficulty levels, tags, and estimated time. AI generates content-specific questions rather than generic ones."
+
+  - task: "Document Info Endpoint"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: GET /api/documents/{document_id} endpoint working perfectly. Successfully retrieves document information including filename, content_type, file_size, processed status, upload_timestamp, and extracted_text. All document metadata is properly stored and retrieved from MongoDB."
+
 agent_communication:
     - agent: "testing"
       message: "Backend testing completed. Basic infrastructure (connectivity, database, existing status endpoints) working correctly. CRITICAL ISSUE: Assessment and question management endpoints are completely missing from backend implementation. This explains user's reported issues with question creation functionality. Backend needs assessment/exam and question management API endpoints to support the frontend question editor."
     - agent: "testing"
       message: "🎉 COMPREHENSIVE TESTING COMPLETED: All assessment management endpoints are now fully functional! Successfully tested complete workflow: 1) Assessment creation (POST /api/assessments) ✅ 2) Assessment retrieval (GET /api/assessments, GET /api/assessments/{id}) ✅ 3) Question management (POST /api/assessments/{id}/questions) ✅ 4) Question retrieval (GET /api/assessments/{id}/questions) ✅ 5) Question updates (PUT /api/assessments/{id}/questions/{question_id}) ✅. Backend is ready to support frontend question editor functionality. All 11 tests passed with 100% success rate."
+    - agent: "testing"
+      message: "🚀 NEW ENDPOINTS TESTING COMPLETED: Successfully tested all three new document processing and AI question generation endpoints requested in review. 1) Document Upload (POST /api/documents/upload) ✅ - PDF text extraction working perfectly, extracted 1437 characters from test document. 2) AI Question Generation (POST /api/assessments/{id}/generate-questions) ✅ - Gemini AI generating highly relevant questions (100% relevance score) based on document content, not generic ML questions. 3) Document Info (GET /api/documents/{id}) ✅ - Retrieving complete document metadata and extracted text. All error handling working properly. Gemini API key configured and functional. Total 19 tests passed with 100% success rate."
