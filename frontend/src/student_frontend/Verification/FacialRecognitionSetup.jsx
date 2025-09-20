@@ -394,14 +394,29 @@ const FacialRecognitionSetup = () => {
           
           <Button 
             onClick={handleProceedToCapture}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold rounded-xl transition-all duration-300 disabled:opacity-50"
-            disabled={!hasCamera || isCheckingCamera}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold rounded-xl transition-all duration-300"
           >
             <Camera className="w-5 h-5 mr-3" />
-            Start Face Capture
+            {hasCamera ? 'Start Face Capture' : 'Continue with Demo Mode'}
             <ArrowRight className="w-5 h-5 ml-3" />
           </Button>
         </div>
+
+        {/* Demo Mode Notice */}
+        {!hasCamera && (
+          <div className="bg-blue-50 rounded-lg p-6 border border-blue-200 text-center">
+            <div className="flex items-start space-x-3">
+              <Info className="w-6 h-6 text-blue-600 mt-0.5" />
+              <div className="text-blue-700">
+                <h4 className="font-semibold mb-2">Demo Mode Available</h4>
+                <p className="text-sm">
+                  Camera not detected in this environment. You can continue with demo mode 
+                  to experience the complete authentication flow with simulated face verification.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Privacy Notice */}
         <div className="text-center text-sm text-slate-500 max-w-2xl mx-auto">
