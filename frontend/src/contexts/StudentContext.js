@@ -47,8 +47,17 @@ const studentReducer = (state, action) => {
     case 'SET_AUTH_TOKEN':
       return { ...state, authToken: action.payload };
     
+    case 'SET_EXAM_INFO':
+      return { ...state, examInfo: action.payload };
+    
+    case 'SET_SESSION_ID':
+      return { ...state, sessionId: action.payload };
+    
     case 'SET_EXAM_SESSION':
       return { ...state, examSession: action.payload };
+    
+    case 'SET_SUBMISSION_RESULT':
+      return { ...state, submissionResult: action.payload };
     
     case 'SET_CURRENT_EXAM':
       return { 
