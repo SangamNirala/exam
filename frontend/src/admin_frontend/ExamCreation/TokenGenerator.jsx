@@ -457,7 +457,10 @@ const TokenGenerator = () => {
                     
                     <div>
                       <div className="flex items-center space-x-3">
-                        <code className="text-lg font-mono font-bold text-slate-900">
+                        <code 
+                          className="text-lg font-mono font-bold text-slate-900 select-all"
+                          data-token={token.token}
+                        >
                           {showTokens ? token.token : '****-****'}
                         </code>
                         <Badge 
