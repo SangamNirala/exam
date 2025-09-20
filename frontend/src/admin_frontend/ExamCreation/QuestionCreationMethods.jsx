@@ -44,36 +44,218 @@ const QuestionCreationMethods = () => {
     focus: 'balanced'
   });
 
-  // Mock questions for demonstration
-  const mockGeneratedQuestions = [
+  // Dynamic question templates based on different subjects
+  const getQuestionTemplates = () => {
+    const documentNames = examData.uploadedDocuments.map(doc => doc.name.toLowerCase());
+    const documentContent = documentNames.join(' ');
+    
+    // Determine subject based on document names or exam subject
+    const subject = examData.subject || 'general';
+    const difficulty = aiGenerationSettings.difficulty;
+    
+    // Generate different questions based on context
+    if (documentContent.includes('math') || documentContent.includes('calculus') || documentContent.includes('algebra') || subject === 'math') {
+      return getMathQuestions(difficulty);
+    } else if (documentContent.includes('history') || subject === 'history') {
+      return getHistoryQuestions(difficulty);
+    } else if (documentContent.includes('science') || documentContent.includes('biology') || documentContent.includes('chemistry') || subject === 'science') {
+      return getScienceQuestions(difficulty);
+    } else if (documentContent.includes('english') || documentContent.includes('literature') || subject === 'english') {
+      return getEnglishQuestions(difficulty);
+    } else if (documentContent.includes('programming') || documentContent.includes('code') || subject === 'programming') {
+      return getProgrammingQuestions(difficulty);
+    } else {
+      return getGeneralQuestions(difficulty);
+    }
+  };
+
+  const getMathQuestions = (difficulty) => [
     {
-      id: 'q1',
+      id: 'math1',
       type: 'mcq',
-      question: 'What is the primary goal of machine learning?',
-      options: ['Data storage', 'Pattern recognition', 'Hardware optimization', 'Network security'],
+      question: 'What is the derivative of x²?',
+      options: ['x', '2x', 'x²', '2x²'],
       correctAnswer: 1,
-      difficulty: 'intermediate',
-      estimatedTime: 2,
-      tags: ['machine-learning', 'fundamentals']
-    },
-    {
-      id: 'q2',
-      type: 'mcq',
-      question: 'Which algorithm is commonly used for classification tasks?',
-      options: ['K-means', 'Decision Tree', 'PCA', 'DBSCAN'],
-      correctAnswer: 1,
-      difficulty: 'intermediate',
+      difficulty: difficulty,
       estimatedTime: 3,
-      tags: ['algorithms', 'classification']
+      tags: ['calculus', 'derivatives']
     },
     {
-      id: 'q3',
+      id: 'math2',
+      type: 'mcq',
+      question: 'Which of the following is a prime number?',
+      options: ['15', '21', '17', '25'],
+      correctAnswer: 2,
+      difficulty: difficulty,
+      estimatedTime: 2,
+      tags: ['number-theory', 'primes']
+    },
+    {
+      id: 'math3',
       type: 'descriptive',
-      question: 'Explain the difference between supervised and unsupervised learning with examples.',
-      difficulty: 'advanced',
+      question: 'Explain the Pythagorean theorem and provide an example of its application.',
+      difficulty: difficulty,
       estimatedTime: 8,
+      maxWords: 200,
+      tags: ['geometry', 'theorems']
+    }
+  ];
+
+  const getHistoryQuestions = (difficulty) => [
+    {
+      id: 'hist1',
+      type: 'mcq',
+      question: 'In which year did World War II end?',
+      options: ['1944', '1945', '1946', '1947'],
+      correctAnswer: 1,
+      difficulty: difficulty,
+      estimatedTime: 2,
+      tags: ['world-war', 'dates']
+    },
+    {
+      id: 'hist2',
+      type: 'descriptive',
+      question: 'Discuss the causes and consequences of the Industrial Revolution.',
+      difficulty: difficulty,
+      estimatedTime: 10,
       maxWords: 300,
-      tags: ['supervised-learning', 'unsupervised-learning']
+      tags: ['industrial-revolution', 'social-change']
+    },
+    {
+      id: 'hist3',
+      type: 'mcq',
+      question: 'Who was the first President of the United States?',
+      options: ['Thomas Jefferson', 'George Washington', 'John Adams', 'Benjamin Franklin'],
+      correctAnswer: 1,
+      difficulty: difficulty,
+      estimatedTime: 2,
+      tags: ['american-history', 'presidents']
+    }
+  ];
+
+  const getScienceQuestions = (difficulty) => [
+    {
+      id: 'sci1',
+      type: 'mcq',
+      question: 'What is the chemical symbol for gold?',
+      options: ['Go', 'Gd', 'Au', 'Ag'],
+      correctAnswer: 2,
+      difficulty: difficulty,
+      estimatedTime: 2,
+      tags: ['chemistry', 'elements']
+    },
+    {
+      id: 'sci2',
+      type: 'descriptive',
+      question: 'Explain the process of photosynthesis and its importance to life on Earth.',
+      difficulty: difficulty,
+      estimatedTime: 8,
+      maxWords: 250,
+      tags: ['biology', 'photosynthesis']
+    },
+    {
+      id: 'sci3',
+      type: 'mcq',
+      question: 'What is the speed of light in a vacuum?',
+      options: ['3×10⁶ m/s', '3×10⁸ m/s', '3×10¹⁰ m/s', '3×10¹² m/s'],
+      correctAnswer: 1,
+      difficulty: difficulty,
+      estimatedTime: 3,
+      tags: ['physics', 'constants']
+    }
+  ];
+
+  const getEnglishQuestions = (difficulty) => [
+    {
+      id: 'eng1',
+      type: 'mcq',
+      question: 'Which of the following is a metaphor?',
+      options: ['He runs like the wind', 'Time is money', 'The cat sat on the mat', 'She sings beautifully'],
+      correctAnswer: 1,
+      difficulty: difficulty,
+      estimatedTime: 3,
+      tags: ['literature', 'figurative-language']
+    },
+    {
+      id: 'eng2',
+      type: 'descriptive',
+      question: 'Analyze the theme of love in Shakespeare\'s Romeo and Juliet.',
+      difficulty: difficulty,
+      estimatedTime: 12,
+      maxWords: 400,
+      tags: ['shakespeare', 'literary-analysis']
+    },
+    {
+      id: 'eng3',
+      type: 'mcq',
+      question: 'What is the past tense of "write"?',
+      options: ['writed', 'wrote', 'written', 'writes'],
+      correctAnswer: 1,
+      difficulty: difficulty,
+      estimatedTime: 2,
+      tags: ['grammar', 'verbs']
+    }
+  ];
+
+  const getProgrammingQuestions = (difficulty) => [
+    {
+      id: 'prog1',
+      type: 'mcq',
+      question: 'Which of the following is NOT a programming language?',
+      options: ['Python', 'JavaScript', 'HTML', 'Java'],
+      correctAnswer: 2,
+      difficulty: difficulty,
+      estimatedTime: 2,
+      tags: ['programming', 'languages']
+    },
+    {
+      id: 'prog2',
+      type: 'coding',
+      question: 'Write a function that returns the factorial of a given number.',
+      difficulty: difficulty,
+      estimatedTime: 15,
+      tags: ['algorithms', 'recursion']
+    },
+    {
+      id: 'prog3',
+      type: 'descriptive',
+      question: 'Explain the difference between a class and an object in object-oriented programming.',
+      difficulty: difficulty,
+      estimatedTime: 6,
+      maxWords: 200,
+      tags: ['oop', 'concepts']
+    }
+  ];
+
+  const getGeneralQuestions = (difficulty) => [
+    {
+      id: 'gen1',
+      type: 'mcq',
+      question: 'What does the acronym "URL" stand for?',
+      options: ['Universal Resource Locator', 'Uniform Resource Locator', 'Universal Reference Link', 'Uniform Reference Locator'],
+      correctAnswer: 1,
+      difficulty: difficulty,
+      estimatedTime: 2,
+      tags: ['technology', 'internet']
+    },
+    {
+      id: 'gen2',
+      type: 'descriptive',
+      question: 'Describe the importance of critical thinking in problem-solving.',
+      difficulty: difficulty,
+      estimatedTime: 8,
+      maxWords: 250,
+      tags: ['critical-thinking', 'problem-solving']
+    },
+    {
+      id: 'gen3',
+      type: 'mcq',
+      question: 'Which continent has the most countries?',
+      options: ['Asia', 'Africa', 'Europe', 'South America'],
+      correctAnswer: 1,
+      difficulty: difficulty,
+      estimatedTime: 2,
+      tags: ['geography', 'countries']
     }
   ];
 
