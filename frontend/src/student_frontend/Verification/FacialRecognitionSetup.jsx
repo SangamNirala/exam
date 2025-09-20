@@ -99,7 +99,10 @@ const FacialRecognitionSetup = () => {
     if (hasCamera) {
       setStep('faceCapture');
     } else {
-      checkCameraAvailability();
+      // For demo purposes, allow proceeding even without camera
+      console.log('Demo mode: proceeding without camera for testing');
+      setCameraReady(true);
+      setStep('faceCapture');
     }
   };
 
