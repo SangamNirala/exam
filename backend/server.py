@@ -465,6 +465,286 @@ async def get_document_info(document_id: str):
         return DocumentInfo(**document)
     raise HTTPException(status_code=404, detail="Document not found")
 
+# Student Portal Authentication Models
+class StudentToken(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    token: str
+    student_name: Optional[str] = None
+    exam_id: str
+    is_active: bool = True
+    expires_at: datetime
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    usage_count: int = 0
+    max_usage: int = 1
+
+class TokenValidationRequest(BaseModel):
+    token: str
+
+class TokenValidationResponse(BaseModel):
+    valid: bool
+    message: str
+    student_token: Optional[dict] = None
+    exam_info: Optional[dict] = None
+
+class FaceVerificationRequest(BaseModel):
+    token: str
+    face_image_data: str  # Base64 encoded image
+    confidence_threshold: float = 0.8
+
+class FaceVerificationResponse(BaseModel):
+    verified: bool
+    confidence: float
+    message: str
+    session_id: Optional[str] = None
+
+class ExamSession(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    student_token_id: str
+    exam_id: str
+    start_time: datetime = Field(default_factory=datetime.utcnow)
+    end_time: Optional[datetime] = None
+    face_verification_data: Optional[dict] = None
+    status: str = "active"  # active, completed, terminated
+    monitoring_events: List[dict] = []
+
+# Student Portal Authentication Endpoints
+@api_router.post("/student/validate-token", response_model=TokenValidationResponse)
+async def validate_student_token(request: TokenValidationRequest):
+    """Validate student exam token."""
+    try:
+        # Check if token exists and is active
+        token_doc = await db.student_tokens.find_one({
+            "token": request.token.upper().strip(),
+            "is_active": True,
+            "expires_at": {"$gt": datetime.utcnow()}
+        })
+        
+        if not token_doc:
+            return TokenValidationResponse(
+                valid=False,
+                message="Invalid or expired token. Please check your token and try again."
+            )
+        
+        # Check usage count
+        if token_doc["usage_count"] >= token_doc["max_usage"]:
+            return TokenValidationResponse(
+                valid=False,
+                message="Token has already been used. Please contact your instructor."
+            )
+        
+        # Get exam information
+        exam_info = await db.assessments.find_one({"id": token_doc["exam_id"]})
+        if not exam_info:
+            return TokenValidationResponse(
+                valid=False,
+                message="Associated exam not found. Please contact your instructor."
+            )
+        
+        return TokenValidationResponse(
+            valid=True,
+            message="Token validated successfully.",
+            student_token={
+                "id": token_doc["id"],
+                "token": token_doc["token"],
+                "student_name": token_doc.get("student_name"),
+                "exam_id": token_doc["exam_id"],
+                "expires_at": token_doc["expires_at"].isoformat()
+            },
+            exam_info={
+                "id": exam_info["id"],
+                "title": exam_info["title"],
+                "description": exam_info.get("description"),
+                "duration": exam_info["duration"],
+                "question_count": len(exam_info.get("questions", [])),
+                "exam_type": exam_info.get("exam_type"),
+                "difficulty": exam_info.get("difficulty")
+            }
+        )
+        
+    except Exception as e:
+        logging.error(f"Error validating token: {str(e)}")
+        raise HTTPException(status_code=500, detail="Token validation failed")
+
+@api_router.post("/student/face-verification", response_model=FaceVerificationResponse)
+async def verify_student_face(request: FaceVerificationRequest):
+    """Verify student identity using facial recognition."""
+    try:
+        # Validate token first
+        token_doc = await db.student_tokens.find_one({
+            "token": request.token.upper().strip(),
+            "is_active": True,
+            "expires_at": {"$gt": datetime.utcnow()}
+        })
+        
+        if not token_doc:
+            raise HTTPException(status_code=400, detail="Invalid token")
+        
+        # For demo purposes, we'll simulate face verification
+        # In a real implementation, you'd use AI for face analysis
+        import base64
+        import random
+        
+        try:
+            # Decode base64 image data (basic validation)
+            image_data = base64.b64decode(request.face_image_data.split(',')[1] if ',' in request.face_image_data else request.face_image_data)
+            
+            # Simulate face verification with high confidence
+            # In production, you'd use actual face recognition algorithms
+            confidence = random.uniform(0.85, 0.98)
+            
+            if confidence >= request.confidence_threshold:
+                # Create exam session
+                session = ExamSession(
+                    student_token_id=token_doc["id"],
+                    exam_id=token_doc["exam_id"],
+                    face_verification_data={
+                        "confidence": confidence,
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "verification_method": "face_api_js"
+                    }
+                )
+                
+                # Save session to database
+                await db.exam_sessions.insert_one(session.dict())
+                
+                return FaceVerificationResponse(
+                    verified=True,
+                    confidence=confidence,
+                    message="Face verification successful. You may now proceed to the exam.",
+                    session_id=session.id
+                )
+            else:
+                return FaceVerificationResponse(
+                    verified=False,
+                    confidence=confidence,
+                    message="Face verification failed. Please ensure good lighting and clear face visibility."
+                )
+                
+        except Exception as decode_error:
+            logging.error(f"Face image processing error: {str(decode_error)}")
+            return FaceVerificationResponse(
+                verified=False,
+                confidence=0.0,
+                message="Invalid image data. Please capture a clear image and try again."
+            )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error in face verification: {str(e)}")
+        raise HTTPException(status_code=500, detail="Face verification failed")
+
+@api_router.post("/student/create-demo-token")
+async def create_demo_token():
+    """Create demo tokens for testing purposes."""
+    try:
+        # Create a demo assessment if it doesn't exist
+        demo_assessment = {
+            "id": "demo-assessment-001",
+            "title": "Digital Literacy Fundamentals - Demo",
+            "description": "A demonstration assessment showcasing our platform's capabilities",
+            "duration": 30,
+            "exam_type": "mcq",
+            "difficulty": "intermediate",
+            "questions": [
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "mcq",
+                    "question": "What does 'WWW' stand for in web addresses?",
+                    "options": ["World Wide Web", "World Web Width", "Web World Wide", "Wide World Web"],
+                    "correct_answer": 0,
+                    "difficulty": "beginner",
+                    "points": 1.0,
+                    "estimated_time": 2
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "mcq", 
+                    "question": "Which of the following is considered safe password practice?",
+                    "options": [
+                        "Using your name and birth year",
+                        "Using the same password for all accounts", 
+                        "Using a combination of letters, numbers, and symbols",
+                        "Sharing passwords with trusted friends"
+                    ],
+                    "correct_answer": 2,
+                    "difficulty": "intermediate",
+                    "points": 1.0,
+                    "estimated_time": 2
+                }
+            ],
+            "status": "published",
+            "created_at": datetime.utcnow(),
+            "last_modified": datetime.utcnow()
+        }
+        
+        # Upsert demo assessment
+        await db.assessments.update_one(
+            {"id": demo_assessment["id"]},
+            {"$set": demo_assessment},
+            upsert=True
+        )
+        
+        # Create demo tokens
+        demo_tokens = [
+            {
+                "id": str(uuid.uuid4()),
+                "token": "DEMO1234",
+                "student_name": "Demo Student",
+                "exam_id": "demo-assessment-001",
+                "is_active": True,
+                "expires_at": datetime.utcnow() + timedelta(days=30),
+                "created_at": datetime.utcnow(),
+                "usage_count": 0,
+                "max_usage": 10  # Allow multiple uses for demo
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "token": "TEST5678", 
+                "student_name": "Test Student",
+                "exam_id": "demo-assessment-001",
+                "is_active": True,
+                "expires_at": datetime.utcnow() + timedelta(days=30),
+                "created_at": datetime.utcnow(),
+                "usage_count": 0,
+                "max_usage": 10
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "token": "SAMPLE99",
+                "student_name": "Sample Student", 
+                "exam_id": "demo-assessment-001",
+                "is_active": True,
+                "expires_at": datetime.utcnow() + timedelta(days=30),
+                "created_at": datetime.utcnow(),
+                "usage_count": 0,
+                "max_usage": 10
+            }
+        ]
+        
+        # Insert demo tokens
+        for token in demo_tokens:
+            await db.student_tokens.update_one(
+                {"token": token["token"]},
+                {"$set": token},
+                upsert=True
+            )
+        
+        return {
+            "success": True,
+            "message": "Demo tokens created successfully",
+            "tokens": [t["token"] for t in demo_tokens],
+            "exam_info": {
+                "id": demo_assessment["id"],
+                "title": demo_assessment["title"],
+                "duration": demo_assessment["duration"]
+            }
+        }
+        
+    except Exception as e:
+        logging.error(f"Error creating demo tokens: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create demo tokens")
+
 # Include the router in the main app
 app.include_router(api_router)
 
