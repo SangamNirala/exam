@@ -2,8 +2,9 @@ import React from 'react';
 import { useStudentAuth } from '../../contexts/StudentAuthContext';
 import StudentPortalEntry from './StudentPortalEntry';
 import TokenValidator from './TokenValidator';
-import FacialRecognitionSetup from '../Verification/FacialRecognitionSetup';
-import FaceCapture from '../Verification/FaceCapture';
+// COMMENTED OUT: Face verification components are disabled
+// import FacialRecognitionSetup from '../Verification/FacialRecognitionSetup';
+// import FaceCapture from '../Verification/FaceCapture';
 import ExamInstructions from '../PreExam/ExamInstructions';
 
 const AuthenticationFlow = () => {
@@ -19,11 +20,13 @@ const AuthenticationFlow = () => {
       case 'token':
         return <TokenValidator />;
       
-      case 'faceSetup':
-        return <FacialRecognitionSetup />;
-      
-      case 'faceCapture':
-        return <FaceCapture />;
+      // COMMENTED OUT: Face verification steps are disabled
+      // After token validation, users now go directly to instructions
+      // case 'faceSetup':
+      //   return <FacialRecognitionSetup />;
+      // 
+      // case 'faceCapture':
+      //   return <FaceCapture />;
       
       case 'instructions':
         return <ExamInstructions />;
