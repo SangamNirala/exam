@@ -198,7 +198,7 @@ const TokenValidator = () => {
                           Token validated successfully!
                         </p>
                         <p className="text-green-600 text-sm mt-1">
-                          Redirecting to facial verification...
+                          Proceeding to exam instructions...
                         </p>
                       </div>
                     </div>
