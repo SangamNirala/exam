@@ -125,67 +125,67 @@ const authReducer = (state, action) => {
         }
       };
     
-    // Face recognition
-    case ACTIONS.SET_CAMERA_READY:
-      return {
-        ...state,
-        faceRecognition: {
-          ...state.faceRecognition,
-          cameraReady: action.payload
-        }
-      };
+    // Face recognition - COMMENTED OUT: Face verification disabled
+    // case ACTIONS.SET_CAMERA_READY:
+    //   return {
+    //     ...state,
+    //     faceRecognition: {
+    //       ...state.faceRecognition,
+    //       cameraReady: action.payload
+    //     }
+    //   };
     
-    case ACTIONS.START_FACE_CAPTURE:
-      return {
-        ...state,
-        faceRecognition: {
-          ...state.faceRecognition,
-          isCapturing: true,
-          error: null
-        }
-      };
+    // case ACTIONS.START_FACE_CAPTURE:
+    //   return {
+    //     ...state,
+    //     faceRecognition: {
+    //       ...state.faceRecognition,
+    //       isCapturing: true,
+    //       error: null
+    //     }
+    //   };
     
-    case ACTIONS.FACE_CAPTURE_SUCCESS:
-      return {
-        ...state,
-        faceRecognition: {
-          ...state.faceRecognition,
-          isCapturing: false,
-          capturedImage: action.payload,
-          error: null
-        }
-      };
+    // case ACTIONS.FACE_CAPTURE_SUCCESS:
+    //   return {
+    //     ...state,
+    //     faceRecognition: {
+    //       ...state.faceRecognition,
+    //       isCapturing: false,
+    //       capturedImage: action.payload,
+    //       error: null
+    //     }
+    //   };
     
-    case ACTIONS.FACE_VERIFICATION_SUCCESS:
-      return {
-        ...state,
-        sessionId: action.payload.sessionId,
-        faceRecognition: {
-          ...state.faceRecognition,
-          verificationResult: 'verified',
-          confidence: action.payload.confidence,
-          error: null
-        }
-      };
+    // case ACTIONS.FACE_VERIFICATION_SUCCESS:
+    //   return {
+    //     ...state,
+    //     sessionId: action.payload.sessionId,
+    //     faceRecognition: {
+    //       ...state.faceRecognition,
+    //       verificationResult: 'verified',
+    //       confidence: action.payload.confidence,
+    //       error: null
+    //     }
+    //   };
     
-    case ACTIONS.FACE_VERIFICATION_ERROR:
-      return {
-        ...state,
-        faceRecognition: {
-          ...state.faceRecognition,
-          verificationResult: 'failed',
-          confidence: action.payload.confidence || 0,
-          error: action.payload.message
-        }
-      };
+    // case ACTIONS.FACE_VERIFICATION_ERROR:
+    //   return {
+    //     ...state,
+    //     faceRecognition: {
+    //       ...state.faceRecognition,
+    //       verificationResult: 'failed',
+    //       confidence: action.payload.confidence || 0,
+    //       error: action.payload.message
+    //     }
+    //   };
     
-    case ACTIONS.RESET_FACE_RECOGNITION:
-      return {
-        ...state,
-        faceRecognition: {
-          ...initialState.faceRecognition
-        }
-      };
+    // case ACTIONS.RESET_FACE_RECOGNITION:
+    //   return {
+    //     ...state,
+    //     faceRecognition: {
+    //       ...initialState.faceRecognition
+    //     }
+    //   };
     
     // Authentication
     case ACTIONS.SET_AUTHENTICATED:
