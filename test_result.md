@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Implement a comprehensive Student Portal system with advanced authentication, facial recognition, and exam monitoring capabilities. This is a sophisticated, enterprise-grade system that ensures exam integrity while maintaining full accessibility compliance."
+user_problem_statement: "UPDATED: Remove face verification step from student portal authentication flow. After token validation, students should go directly to exam instructions, bypassing facial recognition completely."
 
 backend:
   - task: "Student Token Validation Endpoints"
