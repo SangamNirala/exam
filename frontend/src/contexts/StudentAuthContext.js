@@ -319,7 +319,8 @@ export const StudentAuthProvider = ({ children }) => {
   };
   
   const resetFaceRecognition = () => {
-    dispatch({ type: ACTIONS.RESET_FACE_RECOGNITION });
+    // COMMENTED OUT: Face verification disabled
+    // dispatch({ type: ACTIONS.RESET_FACE_RECOGNITION });
   };
   
   const resetAuth = () => {
