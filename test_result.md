@@ -393,10 +393,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Student Portal Authentication System Testing Complete"
+    - "Face Verification Removal Testing Complete"
   stuck_tasks: []
   test_all: false
-  test_priority: "authentication_complete"
+  test_priority: "regression_testing_complete"
 
 agent_communication:
     - agent: "testing"
