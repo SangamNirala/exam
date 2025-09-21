@@ -326,7 +326,7 @@ export const StudentAuthProvider = ({ children }) => {
     dispatch({ type: ACTIONS.RESET_AUTH });
   };
   
-  // Complete authentication
+  // Complete authentication - MODIFIED: Skip face verification
   const completeAuthentication = () => {
     dispatch({ type: ACTIONS.SET_AUTHENTICATED, payload: true });
     setStep('instructions');
