@@ -20,15 +20,15 @@ const initialState = {
     maxAttempts: 5
   },
   
-  // Face Recognition State
-  faceRecognition: {
-    cameraReady: false,
-    isCapturing: false,
-    capturedImage: null,
-    verificationResult: null,
-    confidence: 0,
-    error: null
-  },
+  // Face Recognition State - COMMENTED OUT: Face verification disabled
+  // faceRecognition: {
+  //   cameraReady: false,
+  //   isCapturing: false,
+  //   capturedImage: null,
+  //   verificationResult: null,
+  //   confidence: 0,
+  //   error: null
+  // },
   
   // User Data
   studentInfo: {
