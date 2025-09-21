@@ -76,9 +76,9 @@ const TokenValidator = () => {
     setValidationResult(result);
     
     if (result.success) {
-      // Auto-advance to face recognition after successful validation
+      // FACE VERIFICATION BYPASSED: Go directly to instructions after successful token validation
       setTimeout(() => {
-        setStep('faceSetup');
+        setStep('instructions');
       }, 2000);
     }
   };
