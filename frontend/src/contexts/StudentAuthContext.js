@@ -258,60 +258,60 @@ export const StudentAuthProvider = ({ children }) => {
     }
   };
   
-  // Face verification
-  const verifyFace = async (imageData) => {
-    if (!state.authToken) {
-      throw new Error('No valid token found');
-    }
-    
-    try {
-      const response = await axios.post(`${backendUrl}/api/student/face-verification`, {
-        token: state.authToken,
-        face_image_data: imageData,
-        confidence_threshold: 0.8
-      });
-      
-      if (response.data.verified) {
-        dispatch({
-          type: ACTIONS.FACE_VERIFICATION_SUCCESS,
-          payload: {
-            sessionId: response.data.session_id,
-            confidence: response.data.confidence
-          }
-        });
-        return { success: true, data: response.data };
-      } else {
-        dispatch({
-          type: ACTIONS.FACE_VERIFICATION_ERROR,
-          payload: {
-            message: response.data.message,
-            confidence: response.data.confidence
-          }
-        });
-        return { success: false, message: response.data.message };
-      }
-    } catch (error) {
-      const errorMessage = error.response?.data?.detail || 'Face verification failed. Please try again.';
-      dispatch({
-        type: ACTIONS.FACE_VERIFICATION_ERROR,
-        payload: { message: errorMessage }
-      });
-      return { success: false, message: errorMessage };
-    }
-  };
+  // Face verification - COMMENTED OUT: Face verification disabled
+  // const verifyFace = async (imageData) => {
+  //   if (!state.authToken) {
+  //     throw new Error('No valid token found');
+  //   }
+  //   
+  //   try {
+  //     const response = await axios.post(`${backendUrl}/api/student/face-verification`, {
+  //       token: state.authToken,
+  //       face_image_data: imageData,
+  //       confidence_threshold: 0.8
+  //     });
+  //     
+  //     if (response.data.verified) {
+  //       dispatch({
+  //         type: ACTIONS.FACE_VERIFICATION_SUCCESS,
+  //         payload: {
+  //           sessionId: response.data.session_id,
+  //           confidence: response.data.confidence
+  //         }
+  //       });
+  //       return { success: true, data: response.data };
+  //     } else {
+  //       dispatch({
+  //         type: ACTIONS.FACE_VERIFICATION_ERROR,
+  //         payload: {
+  //           message: response.data.message,
+  //           confidence: response.data.confidence
+  //         }
+  //       });
+  //       return { success: false, message: response.data.message };
+  //     }
+  //   } catch (error) {
+  //     const errorMessage = error.response?.data?.detail || 'Face verification failed. Please try again.';
+  //     dispatch({
+  //       type: ACTIONS.FACE_VERIFICATION_ERROR,
+  //       payload: { message: errorMessage }
+  //     });
+  //     return { success: false, message: errorMessage };
+  //   }
+  // };
   
-  // Camera management
-  const setCameraReady = (ready) => {
-    dispatch({ type: ACTIONS.SET_CAMERA_READY, payload: ready });
-  };
+  // Camera management - COMMENTED OUT: Face verification disabled
+  // const setCameraReady = (ready) => {
+  //   dispatch({ type: ACTIONS.SET_CAMERA_READY, payload: ready });
+  // };
   
-  const startFaceCapture = () => {
-    dispatch({ type: ACTIONS.START_FACE_CAPTURE });
-  };
+  // const startFaceCapture = () => {
+  //   dispatch({ type: ACTIONS.START_FACE_CAPTURE });
+  // };
   
-  const completeFaceCapture = (imageData) => {
-    dispatch({ type: ACTIONS.FACE_CAPTURE_SUCCESS, payload: imageData });
-  };
+  // const completeFaceCapture = (imageData) => {
+  //   dispatch({ type: ACTIONS.FACE_CAPTURE_SUCCESS, payload: imageData });
+  // };
   
   // Reset functions
   const resetTokenValidation = () => {
