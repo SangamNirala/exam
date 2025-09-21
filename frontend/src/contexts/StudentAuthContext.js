@@ -7,7 +7,7 @@ const StudentAuthContext = createContext();
 const initialState = {
   // Authentication State
   isAuthenticated: false,
-  currentStep: 'entry', // entry, token, faceSetup, faceCapture, instructions, exam
+  currentStep: 'entry', // entry, token, instructions, exam (faceSetup and faceCapture removed)
   authToken: null,
   examInfo: null,
   sessionId: null,
