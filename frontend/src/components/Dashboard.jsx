@@ -27,6 +27,7 @@ const Dashboard = ({ onBackToLanding }) => {
   const { state, toggleAccessibility, addNotification } = useAppState();
   const { activeTab, switchTab, getTabAnimationClass, transitionRef } = useTabSwitching();
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [showStudentPortal, setShowStudentPortal] = useState(false);
 
   // Demo notification system
   useEffect(() => {
