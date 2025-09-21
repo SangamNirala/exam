@@ -358,11 +358,11 @@ export const StudentAuthProvider = ({ children }) => {
     validateToken,
     resetTokenValidation,
     
-    // Face recognition
-    verifyFace,
-    setCameraReady,
-    startFaceCapture,
-    completeFaceCapture,
+    // Face recognition - COMMENTED OUT: Face verification disabled
+    // verifyFace,
+    // setCameraReady,
+    // startFaceCapture,
+    // completeFaceCapture,
     resetFaceRecognition,
     
     // Authentication
