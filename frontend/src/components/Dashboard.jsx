@@ -21,6 +21,7 @@ import { useAppState } from '../contexts/AppStateContext';
 import { useTabSwitching } from '../hooks/useTabSwitching';
 import AdminDashboard from '../admin_frontend/AdminDashboard';
 import StudentDashboard from '../student_frontend/StudentDashboard';
+import StudentPortalMain from '../student_frontend/StudentPortalMain';
 
 const Dashboard = ({ onBackToLanding }) => {
   const { state, toggleAccessibility, addNotification } = useAppState();
