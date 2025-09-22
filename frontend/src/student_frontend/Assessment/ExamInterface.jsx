@@ -111,7 +111,7 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestion < examData.totalQuestions - 1) {
+    if (currentQuestion < (examData.questions?.length - 1 || 0)) {
       setCurrentQuestion(currentQuestion + 1);
     }
   };
@@ -123,7 +123,9 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
   };
 
   const handleFlagQuestion = () => {
-    const questionId = examData.questions[currentQuestion].id;
+    const questionId = examData.questions?.[currentQuestion]?.id;
+    if (!questionId) return;
+    
     setFlaggedQuestions(prev => {
       const newSet = new Set(prev);
       if (newSet.has(questionId)) {
