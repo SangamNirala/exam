@@ -40,11 +40,6 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
   // Get exam data from auth context, fallback to mock data
   const examInfo = authState.examInfo || {};
   
-  // Debug: Log what we're getting from the context
-  console.log('ExamInterface - authState:', authState);
-  console.log('ExamInterface - examInfo:', examInfo);
-  console.log('ExamInterface - examInfo.questions:', examInfo.questions);
-  
   // Create complete exam data with fallbacks
   const examData = {
     title: examInfo.title || "Digital Literacy Fundamentals",  
