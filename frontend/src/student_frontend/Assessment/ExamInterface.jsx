@@ -170,6 +170,15 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
     questions: hasQuestions ? examQuestions : fallbackQuestions
   };
 
+  // Debug logging
+  console.log('🔍 ExamInterface Debug:', {
+    examInfoQuestions: examInfo.questions?.length || 0,
+    examQuestionsLength: examQuestions?.length || 0,
+    hasQuestions,
+    finalQuestionsLength: examData.questions?.length || 0,
+    usingFallback: !hasQuestions
+  });
+
   // Define handleSubmitExam with stable dependencies to prevent infinite loop
   const handleSubmitExam = useCallback(() => {
     // In real implementation, this would submit to backend
