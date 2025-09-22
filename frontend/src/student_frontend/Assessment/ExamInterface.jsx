@@ -94,8 +94,10 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
     }
   }, [answers, setView]);
 
-  // Store the submit function in ref to prevent unnecessary re-renders
-  submitExamRef.current = handleSubmitExam;
+  // Store the submit function in ref - only update when function changes
+  useEffect(() => {
+    submitExamRef.current = handleSubmitExam;
+  }, [handleSubmitExam]);
 
   // Timer countdown
   useEffect(() => {
