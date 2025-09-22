@@ -84,20 +84,27 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
     ]
   };
 
-  // Define handleSubmitExam first
+  // Define handleSubmitExam with stable dependencies to prevent infinite loop
   const handleSubmitExam = useCallback(() => {
     // In real implementation, this would submit to backend
-    console.log('Submitting exam with answers:', answers);
+    console.log('Submitting exam with current answers:', answers);
     // TODO: Submit to backend and redirect to results
     if (setView) {
       setView('results');
     }
-  }, [answers, setView]);
+  }, [setView]); // Only depend on setView, not answers (to prevent infinite loop)
 
-  // Store the submit function in ref - only update when function changes
+  // Store the submit function in ref - only update when setView changes
   useEffect(() => {
-    submitExamRef.current = handleSubmitExam;
-  }, [handleSubmitExam]);
+    submitExamRef.current = () => {
+      // Get current answers at submit time to avoid stale closure
+      console.log('Submitting exam with current answers:', answers);
+      // TODO: Submit to backend and redirect to results
+      if (setView) {
+        setView('results');
+      }
+    };
+  }, [setView, answers]); // Update when setView or answers change, but don't recreate handleSubmitExam
 
   // Timer countdown
   useEffect(() => {
