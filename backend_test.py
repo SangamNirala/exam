@@ -1674,6 +1674,9 @@ class BackendTester:
             print("❌ Backend server is not accessible. Stopping tests.")
             return False
         
+        # CRITICAL: Test token validation response structure first (as requested in review)
+        self.test_token_validation_response_structure()
+        
         # Test existing endpoints
         self.test_status_endpoints()
         self.test_database_connectivity()
