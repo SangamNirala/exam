@@ -919,6 +919,346 @@ class BackendTester:
             self.log_test("Authentication Error Handling", False, f"Error handling test failed: {str(e)}")
             return False
 
+    # ADMIN TOKEN INTEGRATION TESTS
+    def test_admin_token_creation_valid_exam(self):
+        """Test admin token creation with valid exam ID"""
+        try:
+            # First, create an assessment to use for token creation
+            test_assessment = {
+                "title": "Admin Token Test Assessment",
+                "description": "Assessment for testing admin token creation",
+                "subject": "Computer Science",
+                "duration": 60,
+                "exam_type": "mcq",
+                "difficulty": "intermediate"
+            }
+            
+            # Create assessment
+            response = self.session.post(f"{self.base_url}/assessments", 
+                                       json=test_assessment, timeout=10)
+            
+            if response.status_code != 200:
+                self.log_test("Admin Token Creation (Valid Exam)", False, 
+                            "Failed to create test assessment for admin token testing")
+                return None
+            
+            exam_id = response.json().get('id')
+            
+            # Now test admin token creation
+            token_request = {
+                "exam_id": exam_id,
+                "student_name": "John Smith",
+                "max_usage": 1,
+                "expires_in_hours": 24
+            }
+            
+            response = self.session.post(f"{self.base_url}/admin/create-token", 
+                                       json=token_request, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                success = data.get('success', False)
+                token = data.get('token')
+                exam_info = data.get('exam_info')
+                
+                # Verify token format (XXXX-XXX)
+                import re
+                token_pattern = r'^[A-Z0-9]{4}-[A-Z0-9]{3}$'
+                valid_format = bool(token and re.match(token_pattern, token))
+                
+                if success and token and exam_info and valid_format:
+                    self.created_admin_token = token  # Store for later tests
+                    self.admin_token_exam_id = exam_id
+                    
+                    self.log_test("Admin Token Creation (Valid Exam)", True, 
+                                "Admin token created successfully", 
+                                f"Token: {token}, Format: XXXX-XXX, Exam: {exam_info.get('title')}")
+                    return token
+                else:
+                    self.log_test("Admin Token Creation (Valid Exam)", False, 
+                                "Admin token creation response incomplete or invalid format",
+                                f"Success: {success}, Token: {token}, Format valid: {valid_format}, Exam info: {bool(exam_info)}")
+                    return None
+            else:
+                self.log_test("Admin Token Creation (Valid Exam)", False, 
+                            f"Admin token creation failed with status {response.status_code}",
+                            f"Response: {response.text}")
+                return None
+                
+        except Exception as e:
+            self.log_test("Admin Token Creation (Valid Exam)", False, f"Request failed: {str(e)}")
+            return None
+
+    def test_admin_token_creation_invalid_exam(self):
+        """Test admin token creation with invalid exam ID"""
+        try:
+            token_request = {
+                "exam_id": "non-existent-exam-id",
+                "student_name": "Test Student",
+                "max_usage": 1,
+                "expires_in_hours": 24
+            }
+            
+            response = self.session.post(f"{self.base_url}/admin/create-token", 
+                                       json=token_request, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                success = data.get('success', True)  # Should be False
+                message = data.get('message', '')
+                
+                if not success and 'not found' in message.lower():
+                    self.log_test("Admin Token Creation (Invalid Exam)", True, 
+                                "Invalid exam ID correctly rejected", 
+                                f"Message: {message}")
+                    return True
+                else:
+                    self.log_test("Admin Token Creation (Invalid Exam)", False, 
+                                "Invalid exam ID was not properly rejected",
+                                f"Success: {success}, Message: {message}")
+                    return False
+            else:
+                self.log_test("Admin Token Creation (Invalid Exam)", False, 
+                            f"Unexpected status code {response.status_code}",
+                            f"Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Admin Token Creation (Invalid Exam)", False, f"Request failed: {str(e)}")
+            return False
+
+    def test_admin_token_validation(self):
+        """Test validation of admin-generated tokens (XXXX-XXX format)"""
+        if not hasattr(self, 'created_admin_token') or not self.created_admin_token:
+            self.log_test("Admin Token Validation", False, 
+                        "No admin token available for testing")
+            return False
+            
+        try:
+            test_request = {"token": self.created_admin_token}
+            
+            response = self.session.post(f"{self.base_url}/student/validate-token", 
+                                       json=test_request, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                valid = data.get('valid', False)
+                student_token = data.get('student_token')
+                exam_info = data.get('exam_info')
+                
+                if valid and student_token and exam_info:
+                    # Verify the token format and data integrity
+                    token_from_response = student_token.get('token')
+                    exam_id_from_response = student_token.get('exam_id')
+                    
+                    if (token_from_response == self.created_admin_token and 
+                        exam_id_from_response == self.admin_token_exam_id):
+                        
+                        self.log_test("Admin Token Validation", True, 
+                                    "Admin token validated successfully", 
+                                    f"Token: {token_from_response}, Student: {student_token.get('student_name')}, Exam: {exam_info.get('title')}")
+                        return True
+                    else:
+                        self.log_test("Admin Token Validation", False, 
+                                    "Admin token validation data mismatch",
+                                    f"Expected token: {self.created_admin_token}, Got: {token_from_response}")
+                        return False
+                else:
+                    self.log_test("Admin Token Validation", False, 
+                                "Admin token validation response incomplete",
+                                f"Valid: {valid}, Student token: {bool(student_token)}, Exam info: {bool(exam_info)}")
+                    return False
+            else:
+                self.log_test("Admin Token Validation", False, 
+                            f"Admin token validation failed with status {response.status_code}",
+                            f"Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Admin Token Validation", False, f"Request failed: {str(e)}")
+            return False
+
+    def test_demo_vs_admin_token_compatibility(self):
+        """Test that both demo tokens (8-char) and admin tokens (XXXX-XXX) work with validation"""
+        try:
+            tokens_tested = 0
+            tokens_passed = 0
+            
+            # Test demo tokens (8-character format)
+            if hasattr(self, 'demo_tokens') and self.demo_tokens:
+                for demo_token in self.demo_tokens[:2]:  # Test first 2 demo tokens
+                    test_request = {"token": demo_token}
+                    response = self.session.post(f"{self.base_url}/student/validate-token", 
+                                               json=test_request, timeout=10)
+                    
+                    tokens_tested += 1
+                    if response.status_code == 200 and response.json().get('valid'):
+                        tokens_passed += 1
+                        self.log_test(f"Demo Token Compatibility ({demo_token})", True, 
+                                    "8-character demo token works correctly")
+                    else:
+                        self.log_test(f"Demo Token Compatibility ({demo_token})", False, 
+                                    "8-character demo token validation failed")
+            
+            # Test admin token (XXXX-XXX format)
+            if hasattr(self, 'created_admin_token') and self.created_admin_token:
+                test_request = {"token": self.created_admin_token}
+                response = self.session.post(f"{self.base_url}/student/validate-token", 
+                                           json=test_request, timeout=10)
+                
+                tokens_tested += 1
+                if response.status_code == 200 and response.json().get('valid'):
+                    tokens_passed += 1
+                    self.log_test(f"Admin Token Compatibility ({self.created_admin_token})", True, 
+                                "XXXX-XXX admin token works correctly")
+                else:
+                    self.log_test(f"Admin Token Compatibility ({self.created_admin_token})", False, 
+                                "XXXX-XXX admin token validation failed")
+            
+            if tokens_tested > 0:
+                if tokens_passed == tokens_tested:
+                    self.log_test("Token Format Compatibility", True, 
+                                f"All {tokens_tested} token formats work correctly", 
+                                "Both 8-character demo tokens and XXXX-XXX admin tokens are compatible")
+                    return True
+                else:
+                    self.log_test("Token Format Compatibility", False, 
+                                f"Only {tokens_passed}/{tokens_tested} token formats work correctly")
+                    return False
+            else:
+                self.log_test("Token Format Compatibility", False, 
+                            "No tokens available for compatibility testing")
+                return False
+                
+        except Exception as e:
+            self.log_test("Token Format Compatibility", False, f"Request failed: {str(e)}")
+            return False
+
+    def test_admin_token_storage_verification(self):
+        """Test that admin tokens are stored correctly in student_tokens collection"""
+        if not hasattr(self, 'created_admin_token') or not self.created_admin_token:
+            self.log_test("Admin Token Storage Verification", False, 
+                        "No admin token available for storage testing")
+            return False
+            
+        try:
+            # Verify token is stored by attempting validation
+            test_request = {"token": self.created_admin_token}
+            response = self.session.post(f"{self.base_url}/student/validate-token", 
+                                       json=test_request, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('valid'):
+                    student_token = data.get('student_token', {})
+                    
+                    # Verify all expected fields are present
+                    required_fields = ['id', 'token', 'exam_id', 'expires_at']
+                    missing_fields = [field for field in required_fields if not student_token.get(field)]
+                    
+                    if not missing_fields:
+                        self.log_test("Admin Token Storage Verification", True, 
+                                    "Admin token stored correctly with all required fields", 
+                                    f"Token ID: {student_token.get('id')}, Exam ID: {student_token.get('exam_id')}")
+                        return True
+                    else:
+                        self.log_test("Admin Token Storage Verification", False, 
+                                    f"Admin token missing required fields: {missing_fields}")
+                        return False
+                else:
+                    self.log_test("Admin Token Storage Verification", False, 
+                                "Admin token not found in database or marked as invalid")
+                    return False
+            else:
+                self.log_test("Admin Token Storage Verification", False, 
+                            f"Token validation request failed with status {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Admin Token Storage Verification", False, f"Request failed: {str(e)}")
+            return False
+
+    def test_admin_token_edge_cases(self):
+        """Test edge cases for admin token functionality"""
+        try:
+            edge_cases_passed = 0
+            total_edge_cases = 0
+            
+            # Test 1: Token usage limit
+            if hasattr(self, 'created_admin_token') and self.created_admin_token:
+                # First use should work
+                test_request = {"token": self.created_admin_token}
+                response = self.session.post(f"{self.base_url}/student/validate-token", 
+                                           json=test_request, timeout=10)
+                
+                total_edge_cases += 1
+                if response.status_code == 200 and response.json().get('valid'):
+                    edge_cases_passed += 1
+                    self.log_test("Admin Token Edge Case (Usage Limit)", True, 
+                                "Token works within usage limit")
+                else:
+                    self.log_test("Admin Token Edge Case (Usage Limit)", False, 
+                                "Token failed within usage limit")
+            
+            # Test 2: Create token with different parameters
+            if hasattr(self, 'admin_token_exam_id') and self.admin_token_exam_id:
+                token_request = {
+                    "exam_id": self.admin_token_exam_id,
+                    "student_name": "Jane Doe",
+                    "max_usage": 3,
+                    "expires_in_hours": 48
+                }
+                
+                response = self.session.post(f"{self.base_url}/admin/create-token", 
+                                           json=token_request, timeout=10)
+                
+                total_edge_cases += 1
+                if response.status_code == 200 and response.json().get('success'):
+                    edge_cases_passed += 1
+                    multi_use_token = response.json().get('token')
+                    self.log_test("Admin Token Edge Case (Multi-use)", True, 
+                                f"Multi-use token created successfully: {multi_use_token}")
+                else:
+                    self.log_test("Admin Token Edge Case (Multi-use)", False, 
+                                "Failed to create multi-use token")
+            
+            # Test 3: Missing optional parameters
+            if hasattr(self, 'admin_token_exam_id') and self.admin_token_exam_id:
+                minimal_request = {
+                    "exam_id": self.admin_token_exam_id
+                }
+                
+                response = self.session.post(f"{self.base_url}/admin/create-token", 
+                                           json=minimal_request, timeout=10)
+                
+                total_edge_cases += 1
+                if response.status_code == 200 and response.json().get('success'):
+                    edge_cases_passed += 1
+                    minimal_token = response.json().get('token')
+                    self.log_test("Admin Token Edge Case (Minimal Params)", True, 
+                                f"Token created with minimal parameters: {minimal_token}")
+                else:
+                    self.log_test("Admin Token Edge Case (Minimal Params)", False, 
+                                "Failed to create token with minimal parameters")
+            
+            if total_edge_cases > 0:
+                if edge_cases_passed == total_edge_cases:
+                    self.log_test("Admin Token Edge Cases", True, 
+                                f"All {total_edge_cases} edge cases handled correctly")
+                    return True
+                else:
+                    self.log_test("Admin Token Edge Cases", False, 
+                                f"Only {edge_cases_passed}/{total_edge_cases} edge cases passed")
+                    return False
+            else:
+                self.log_test("Admin Token Edge Cases", False, 
+                            "No edge cases could be tested")
+                return False
+                
+        except Exception as e:
+            self.log_test("Admin Token Edge Cases", False, f"Edge case testing failed: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests including Student Portal Authentication System"""
         print(f"🚀 Starting Backend API Tests for Student Portal Authentication System")
