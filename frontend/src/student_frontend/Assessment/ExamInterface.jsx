@@ -40,11 +40,93 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
   // Get exam data from auth context, fallback to mock data
   const examInfo = authState.examInfo || {};
   
+  // If examInfo is missing questions array, fetch them from backend
+  const [questionsLoaded, setQuestionsLoaded] = useState(false);
+  const [examQuestions, setExamQuestions] = useState(examInfo.questions || []);
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      if (!examInfo.questions && examInfo.id && !questionsLoaded) {
+        try {
+          const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+          const response = await fetch(`${backendUrl}/api/assessments/${examInfo.id}/questions`);
+          if (response.ok) {
+            const data = await response.json();
+            console.log('✅ Fetched questions from backend:', data);
+            setExamQuestions(data.questions || []);
+          } else {
+            console.log('❌ Failed to fetch questions, using fallback');
+            setExamQuestions([
+              {
+                id: 1,
+                type: 'mcq',
+                question: "What does 'WWW' stand for in web addresses?",
+                options: [
+                  "World Wide Web",
+                  "World Web Width",
+                  "Web World Wide", 
+                  "Wide World Web"
+                ],
+                correctAnswer: 0
+              },
+              {
+                id: 2,
+                type: 'mcq',
+                question: "Which of the following is considered safe password practice?",
+                options: [
+                  "Using your name and birth year",
+                  "Using the same password for all accounts",
+                  "Using a combination of letters, numbers, and symbols",
+                  "Sharing passwords with trusted friends"
+                ],
+                correctAnswer: 2
+              }
+            ]);
+          }
+        } catch (error) {
+          console.error('Error fetching questions:', error);
+          setExamQuestions([
+            {
+              id: 1,
+              type: 'mcq',
+              question: "What does 'WWW' stand for in web addresses?",
+              options: [
+                "World Wide Web",
+                "World Web Width",
+                "Web World Wide", 
+                "Wide World Web"
+              ],
+              correctAnswer: 0
+            },
+            {
+              id: 2,
+              type: 'mcq',
+              question: "Which of the following is considered safe password practice?",
+              options: [
+                "Using your name and birth year",
+                "Using the same password for all accounts",
+                "Using a combination of letters, numbers, and symbols",
+                "Sharing passwords with trusted friends"
+              ],
+              correctAnswer: 2
+            }
+          ]);
+        }
+        setQuestionsLoaded(true);
+      } else if (examInfo.questions) {
+        setExamQuestions(examInfo.questions);
+        setQuestionsLoaded(true);
+      }
+    };
+
+    fetchQuestions();
+  }, [examInfo.id, examInfo.questions, questionsLoaded]);
+  
   // Create complete exam data with fallbacks
   const examData = {
     title: examInfo.title || "Digital Literacy Fundamentals",  
-    totalQuestions: examInfo.question_count || examInfo.questions?.length || 3,
-    questions: examInfo.questions || [
+    totalQuestions: examInfo.question_count || examQuestions.length || 2,
+    questions: examQuestions || [
       {
         id: 1,
         type: 'mcq',
