@@ -375,7 +375,7 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
                         )}
                       </div>
                       <div className="flex items-center space-x-2">
-                        {state.accessibility.textToSpeech && (
+                        {studentState?.accessibility?.textToSpeech && (
                           <Button variant="outline" size="sm" className="rounded-lg">
                             <Volume2 className="w-4 h-4 mr-2" />
                             Read Aloud
