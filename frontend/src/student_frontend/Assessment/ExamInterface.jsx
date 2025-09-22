@@ -101,11 +101,16 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
   useEffect(() => {
     if (!isPaused && timeRemaining > 0) {
       const timer = setInterval(() => {
-        setTimeRemaining(prev => prev - 1);
+        setTimeRemaining(prev => {
+          if (prev <= 1) {
+            return 0; // Will trigger auto-submit
+          }
+          return prev - 1;
+        });
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [isPaused, timeRemaining]); // Added timeRemaining to dependencies
+  }, [isPaused]); // Only depend on isPaused
 
   // Auto-submit when time runs out
   useEffect(() => {
