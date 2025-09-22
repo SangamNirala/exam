@@ -423,10 +423,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Admin Token Integration Testing Complete"
+    - "Admin Token Generation Bug Fix - COMPLETED"
   stuck_tasks: []
   test_all: false
-  test_priority: "admin_token_integration_verified"
+  test_priority: "admin_token_bug_fix_verified"
 
 agent_communication:
     - agent: "testing"
