@@ -37,6 +37,9 @@ const TakeTest = () => {
   // Demo tokens for easy access
   const demoTokens = ['DEMO1234', 'TEST5678', 'SAMPLE99'];
 
+  // Add logging for state changes
+  console.log('🔍 TakeTest: Component render - currentStep:', currentStep, 'examInfo:', examInfo);
+
   // Reset validation state when component mounts
   useEffect(() => {
     resetTokenValidation();
