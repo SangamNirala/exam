@@ -172,9 +172,9 @@ const ExamInterface = () => {
                 Exit Assessment
               </Button>
               <div>
-                <h1 className="text-xl font-bold text-slate-900">{mockExam.title}</h1>
+                <h1 className="text-xl font-bold text-slate-900">{examData.title}</h1>
                 <p className="text-sm text-slate-600">
-                  Question {currentQuestion + 1} of {mockExam.totalQuestions}
+                  Question {currentQuestion + 1} of {examData.totalQuestions}
                 </p>
               </div>
             </div>
