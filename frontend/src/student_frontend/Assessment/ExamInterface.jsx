@@ -104,7 +104,7 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [isPaused, timeRemaining]);
+  }, [isPaused]);
 
   // Auto-submit when time runs out
   useEffect(() => {
