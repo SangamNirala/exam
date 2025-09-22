@@ -1272,6 +1272,8 @@ class BackendTester:
         self.created_session_id = None
         self.demo_tokens = []
         self.demo_exam_id = None
+        self.created_admin_token = None
+        self.admin_token_exam_id = None
         
         # Test basic connectivity first
         if not self.test_connectivity():
