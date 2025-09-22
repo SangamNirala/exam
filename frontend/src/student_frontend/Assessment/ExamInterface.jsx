@@ -81,6 +81,16 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
     ]
   };
 
+  // Define handleSubmitExam first
+  const handleSubmitExam = useCallback(() => {
+    // In real implementation, this would submit to backend
+    console.log('Submitting exam with answers:', answers);
+    // TODO: Submit to backend and redirect to results
+    if (setView) {
+      setView('results');
+    }
+  }, [answers, setView]);
+
   // Timer countdown
   useEffect(() => {
     if (!isPaused && timeRemaining > 0) {
@@ -138,15 +148,6 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
       return newSet;
     });
   };
-
-  const handleSubmitExam = useCallback(() => {
-    // In real implementation, this would submit to backend
-    console.log('Submitting exam with answers:', answers);
-    // TODO: Submit to backend and redirect to results
-    if (setView) {
-      setView('results');
-    }
-  }, [answers, setView]);
 
   const currentQuestionData = examData.questions?.[currentQuestion] || examData.questions?.[0];
   const currentAnswer = answers[currentQuestionData?.id];
