@@ -209,19 +209,18 @@ export const StudentProvider = ({ children }) => {
     localStorage.setItem('assessai-student-state', JSON.stringify(stateToSave));
   }, [state.accessibility, state.preferences, state.examHistory]);
 
-  // Auto-save exam progress
+  // Auto-save exam progress - FIXED: Remove timeRemaining dependency to prevent infinite loop
   useEffect(() => {
     if (state.currentExam && Object.keys(state.answers).length > 0) {
       const examProgress = {
         examId: state.currentExam.id,
         currentQuestion: state.currentQuestion,
         answers: state.answers,
-        timeRemaining: state.timeRemaining,
         timestamp: Date.now()
       };
       localStorage.setItem('assessai-exam-progress', JSON.stringify(examProgress));
     }
-  }, [state.currentExam, state.currentQuestion, state.answers, state.timeRemaining]);
+  }, [state.currentExam, state.currentQuestion, state.answers]); // Removed state.timeRemaining
 
   const value = {
     state,
