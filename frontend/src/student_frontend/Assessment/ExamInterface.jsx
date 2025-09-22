@@ -420,7 +420,7 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
                     )}
 
                     {/* Speech-to-Text Area */}
-                    {state.accessibility.speechToText && (
+                    {studentState?.accessibility?.speechToText && (
                       <div className="border-2 border-dashed border-blue-300 rounded-xl p-6 bg-blue-50">
                         <div className="flex items-center justify-center space-x-3">
                           <Mic className="w-6 h-6 text-blue-600" />
