@@ -1494,6 +1494,13 @@ class BackendTester:
         self.test_status_endpoints()
         self.test_database_connectivity()
         
+        # CRITICAL PRIORITY: Test the admin token generation bug fix first
+        print("\n🔧 CRITICAL: Testing Admin Token Generation Bug Fix")
+        print("=" * 60)
+        
+        # Test the specific bug fix workflow
+        bug_fix_success = self.test_admin_token_generation_workflow_bug_fix()
+        
         # PRIORITY TESTS: Admin Token Integration Workflow
         print("\n🔑 Testing Admin Token Integration Workflow...")
         
