@@ -218,12 +218,12 @@ export const StudentAuthProvider = ({ children }) => {
     dispatch({ type: ACTIONS.SET_LOADING, payload: loading });
   };
   
-  const setError = (error) => {
+  const setError = useCallback((error) => {
     dispatch({ type: ACTIONS.SET_ERROR, payload: error });
-  };
+  }, []);
   
   // Token validation
-  const validateToken = async (token) => {
+  const validateToken = useCallback(async (token) => {
     dispatch({ type: ACTIONS.START_TOKEN_VALIDATION });
     
     try {
@@ -256,7 +256,7 @@ export const StudentAuthProvider = ({ children }) => {
       });
       return { success: false, message: errorMessage };
     }
-  };
+  }, [backendUrl]);
   
   // Face verification - COMMENTED OUT: Face verification disabled
   // const verifyFace = async (imageData) => {
