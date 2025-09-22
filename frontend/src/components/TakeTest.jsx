@@ -302,7 +302,7 @@ const TakeTest = () => {
             </Card>
 
             {/* Exam Preview */}
-            {examData?.examInfo && (
+            {examInfo && (
               <Card className="border-0 shadow-xl">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-3">
@@ -312,29 +312,29 @@ const TakeTest = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <h4 className="font-semibold text-slate-900 mb-2">{examData.examInfo.title}</h4>
-                    {examData.examInfo.description && (
-                      <p className="text-slate-600 text-sm mb-4">{examData.examInfo.description}</p>
+                    <h4 className="font-semibold text-slate-900 mb-2">{examInfo.title}</h4>
+                    {examInfo.description && (
+                      <p className="text-slate-600 text-sm mb-4">{examInfo.description}</p>
                     )}
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="flex items-center space-x-2">
                       <Clock className="w-4 h-4 text-green-600" />
-                      <span className="text-slate-600">Duration: {examData.examInfo.duration} minutes</span>
+                      <span className="text-slate-600">Duration: {examInfo.duration} minutes</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <FileText className="w-4 h-4 text-blue-600" />
-                      <span className="text-slate-600">{examData.examInfo.question_count} questions</span>
+                      <span className="text-slate-600">{examInfo.question_count} questions</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Badge variant="outline" className="text-xs">
-                        {examData.examInfo.exam_type?.toUpperCase() || 'Mixed'}
+                        {examInfo.exam_type?.toUpperCase() || 'Mixed'}
                       </Badge>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Badge variant="outline" className="text-xs">
-                        {examData.examInfo.difficulty || 'Intermediate'}
+                        {examInfo.difficulty || 'Intermediate'}
                       </Badge>
                     </div>
                   </div>
