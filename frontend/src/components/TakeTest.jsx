@@ -108,7 +108,6 @@ const TakeTest = () => {
 
   // If user is in exam, show the ExamInterface
   if (currentStep === 'exam') {
-    console.log('🎯 TakeTest: Rendering ExamInterface, examInfo:', examInfo);
     return <ExamInterface setView={handleExamCompletion} />;
   }
 
