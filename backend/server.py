@@ -745,6 +745,84 @@ async def create_demo_token():
         logging.error(f"Error creating demo tokens: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to create demo tokens")
 
+# Admin Token Creation Models
+class AdminTokenCreateRequest(BaseModel):
+    exam_id: str
+    student_name: Optional[str] = None
+    max_usage: int = 1
+    expires_in_hours: int = 24
+
+class AdminTokenCreateResponse(BaseModel):
+    success: bool
+    message: str
+    token: Optional[str] = None
+    exam_info: Optional[dict] = None
+
+# Admin Token Creation Endpoint
+@api_router.post("/admin/create-token", response_model=AdminTokenCreateResponse)
+async def create_admin_token(request: AdminTokenCreateRequest):
+    """Create a token for an exam by admin."""
+    try:
+        # Check if exam exists
+        exam_doc = await db.assessments.find_one({"id": request.exam_id})
+        if not exam_doc:
+            return AdminTokenCreateResponse(
+                success=False,
+                message="Exam not found. Please check the exam ID."
+            )
+        
+        # Generate a unique token in the format XXXX-XXX
+        import random
+        import string
+        
+        # Generate token with format like ZPCU-KOC
+        def generate_admin_token():
+            part1 = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+            part2 = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
+            return f"{part1}-{part2}"
+        
+        token = generate_admin_token()
+        
+        # Ensure token is unique
+        while await db.student_tokens.find_one({"token": token}):
+            token = generate_admin_token()
+        
+        # Create token document
+        token_doc = {
+            "id": str(uuid.uuid4()),
+            "token": token,
+            "student_name": request.student_name,
+            "exam_id": request.exam_id,
+            "is_active": True,
+            "created_at": datetime.utcnow(),
+            "expires_at": datetime.utcnow() + timedelta(hours=request.expires_in_hours),
+            "usage_count": 0,
+            "max_usage": request.max_usage
+        }
+        
+        # Insert token into database
+        await db.student_tokens.insert_one(token_doc)
+        
+        return AdminTokenCreateResponse(
+            success=True,
+            message="Token created successfully.",
+            token=token,
+            exam_info={
+                "id": exam_doc["id"],
+                "title": exam_doc["title"],
+                "duration": exam_doc["duration"],
+                "question_count": len(exam_doc.get("questions", [])),
+                "exam_type": exam_doc.get("exam_type", "mcq")
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error creating admin token: {str(e)}")
+        return AdminTokenCreateResponse(
+            success=False,
+            message="Internal server error. Please try again."
+        )
+
 # Include the router in the main app
 app.include_router(api_router)
 
