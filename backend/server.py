@@ -557,7 +557,8 @@ async def validate_student_token(request: TokenValidationRequest):
                 "duration": exam_info["duration"],
                 "question_count": len(exam_info.get("questions", [])),
                 "exam_type": exam_info.get("exam_type"),
-                "difficulty": exam_info.get("difficulty")
+                "difficulty": exam_info.get("difficulty"),
+                "questions": exam_info.get("questions", [])  # Include actual questions for ExamInterface
             }
         )
         
