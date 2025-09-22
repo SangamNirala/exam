@@ -2027,6 +2027,11 @@ class BackendTester:
         if assessment_id:
             self.test_ai_question_generation(assessment_id)
         
+        # CRITICAL: Test specific tokens for Loading exam bug fix
+        print("\n🎯 CRITICAL: Testing Loading Exam Bug Fix Tokens")
+        print("-" * 50)
+        self.test_specific_loading_exam_bug_tokens()
+        
         # Summary
         print("\n" + "=" * 60)
         print("📊 TEST SUMMARY")
