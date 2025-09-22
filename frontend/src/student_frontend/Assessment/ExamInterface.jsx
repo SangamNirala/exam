@@ -22,7 +22,7 @@ import {
   Play,
   Save
 } from 'lucide-react';
-import { useStudent } from '../../contexts/StudentContext';
+import { useStudentAuth } from '../../contexts/StudentAuthContext';
 
 const ExamInterface = () => {
   const { state, setView, updateAnswer, toggleAccessibility } = useStudent();
