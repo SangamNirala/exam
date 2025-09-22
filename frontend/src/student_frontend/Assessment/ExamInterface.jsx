@@ -120,7 +120,7 @@ const ExamInterface = () => {
   };
 
   const handleFlagQuestion = () => {
-    const questionId = mockExam.questions[currentQuestion].id;
+    const questionId = examData.questions[currentQuestion].id;
     setFlaggedQuestions(prev => {
       const newSet = new Set(prev);
       if (newSet.has(questionId)) {
