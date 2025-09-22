@@ -139,11 +139,14 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
     });
   };
 
-  const handleSubmitExam = () => {
+  const handleSubmitExam = useCallback(() => {
     // In real implementation, this would submit to backend
     console.log('Submitting exam with answers:', answers);
-    alert('Exam submitted successfully!');
-  };
+    // TODO: Submit to backend and redirect to results
+    if (setView) {
+      setView('results');
+    }
+  }, [answers, setView]);
 
   const currentQuestionData = examData.questions?.[currentQuestion] || examData.questions?.[0];
   const currentAnswer = answers[currentQuestionData?.id];
