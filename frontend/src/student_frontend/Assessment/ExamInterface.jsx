@@ -411,7 +411,7 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
                               onChange={() => handleAnswerChange(currentQuestionData.id, index)}
                               className="w-4 h-4 text-blue-600 mr-4"
                             />
-                            <span className={`${state.accessibility.largeText ? 'text-lg' : 'text-base'} text-slate-900`}>
+                            <span className={`${studentState?.accessibility?.largeText ? 'text-lg' : 'text-base'} text-slate-900`}>
                               {String.fromCharCode(65 + index)}. {option}
                             </span>
                           </label>
