@@ -101,9 +101,42 @@ const TakeTest = () => {
     window.location.href = '/';
   };
 
+  // Handle exam completion - transition to results
+  const handleExamCompletion = () => {
+    setCurrentStep('results');
+  };
+
   // If user is in exam, show the ExamInterface
   if (currentStep === 'exam') {
-    return <ExamInterface />;
+    return <ExamInterface setView={handleExamCompletion} />;
+  }
+
+  // If user completed exam, show results
+  if (currentStep === 'results') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center p-6">
+        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center pb-4">
+            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <CardTitle className="text-2xl font-bold text-slate-800">
+              Exam Completed!
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-slate-600">
+              Your exam has been submitted successfully. Results will be available soon.
+            </p>
+            <Button
+              onClick={goBackToLanding}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Back to Home
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
