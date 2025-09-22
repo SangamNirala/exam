@@ -34,7 +34,7 @@ const TakeTest = () => {
   const maxAttempts = 3;
 
   // Get backend URL from environment
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   // Demo tokens for easy access
   const demoTokens = ['DEMO1234', 'TEST5678', 'SAMPLE99'];
