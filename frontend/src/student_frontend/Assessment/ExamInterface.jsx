@@ -259,16 +259,16 @@ const ExamInterface = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-5 gap-2">
-                  {Array.from({ length: mockExam.totalQuestions }, (_, index) => (
+                  {Array.from({ length: examData.totalQuestions }, (_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentQuestion(index)}
                       className={`aspect-square rounded-lg border-2 text-sm font-medium transition-all duration-200 ${
                         index === currentQuestion
                           ? 'border-blue-500 bg-blue-500 text-white'
-                          : answers[mockExam.questions[index]?.id]
+                          : answers[examData.questions[index]?.id]
                           ? 'border-green-300 bg-green-100 text-green-700'
-                          : flaggedQuestions.has(mockExam.questions[index]?.id)
+                          : flaggedQuestions.has(examData.questions[index]?.id)
                           ? 'border-yellow-300 bg-yellow-100 text-yellow-700'
                           : 'border-slate-300 bg-white text-slate-600 hover:border-slate-400'
                       }`}
