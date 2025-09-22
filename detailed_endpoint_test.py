@@ -11,7 +11,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 
 # Backend URL
-BACKEND_URL = "https://examflow-8.preview.emergentagent.com/api"
+BACKEND_URL = "https://test-loading-fix.preview.emergentagent.com/api"
 
 def create_test_pdf():
     """Create a test PDF with machine learning content"""

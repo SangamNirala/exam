@@ -11,7 +11,7 @@ from datetime import datetime
 import uuid
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://examflow-8.preview.emergentagent.com/api"
+BACKEND_URL = "https://test-loading-fix.preview.emergentagent.com/api"
 
 class StudentExamWorkflowTester:
     def __init__(self):

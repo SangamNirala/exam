@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://examflow-8.preview.emergentagent.com/api"
+BACKEND_URL = "https://test-loading-fix.preview.emergentagent.com/api"
 
 class TokenValidationTester:
     def __init__(self):
