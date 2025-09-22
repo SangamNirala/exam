@@ -199,14 +199,23 @@ export const StudentProvider = ({ children }) => {
     }
   }, []);
 
-  // Persist student state changes
+  // Persist student state changes - OPTIMIZED: Use ref to prevent frequent writes
   useEffect(() => {
-    const stateToSave = {
-      accessibility: state.accessibility,
-      preferences: state.preferences,
-      examHistory: state.examHistory
-    };
-    localStorage.setItem('assessai-student-state', JSON.stringify(stateToSave));
+    // Debounce localStorage writes to prevent excessive operations
+    const timeoutId = setTimeout(() => {
+      const stateToSave = {
+        accessibility: state.accessibility,
+        preferences: state.preferences,
+        examHistory: state.examHistory
+      };
+      try {
+        localStorage.setItem('assessai-student-state', JSON.stringify(stateToSave));
+      } catch (error) {
+        console.error('Error saving student state:', error);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
   }, [state.accessibility, state.preferences, state.examHistory]);
 
   // Auto-save exam progress - FIXED: Remove timeRemaining dependency to prevent infinite loop
