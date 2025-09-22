@@ -33,6 +33,9 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
   const [isPaused, setIsPaused] = useState(false);
   const [flaggedQuestions, setFlaggedQuestions] = useState(new Set());
   const [answers, setAnswers] = useState({});
+  
+  // Use ref to avoid recreating submit function and breaking useEffect dependencies
+  const submitExamRef = useRef();
 
   // Get exam data from auth context, fallback to mock data
   const examInfo = authState.examInfo || {};
