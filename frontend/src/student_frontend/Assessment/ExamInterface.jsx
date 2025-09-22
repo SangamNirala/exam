@@ -33,10 +33,13 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
   const [answers, setAnswers] = useState({});
 
   // Get exam data from auth context, fallback to mock data
-  const examData = state.examInfo || {
-    title: "Digital Literacy Fundamentals",
-    totalQuestions: 15,
-    questions: [
+  const examInfo = state.examInfo || {};
+  
+  // Create complete exam data with fallbacks
+  const examData = {
+    title: examInfo.title || "Digital Literacy Fundamentals",  
+    totalQuestions: examInfo.questions?.length || 3,
+    questions: examInfo.questions || [
       {
         id: 1,
         type: 'mcq',
@@ -68,7 +71,7 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
         options: [
           "To speed up your computer",
           "To protect against malicious software",
-          "To create documents",
+          "To create documents", 
           "To browse the internet"
         ],
         correctAnswer: 1
