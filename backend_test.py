@@ -1259,6 +1259,216 @@ class BackendTester:
             self.log_test("Admin Token Edge Cases", False, f"Edge case testing failed: {str(e)}")
             return False
 
+    def test_admin_token_generation_workflow_bug_fix(self):
+        """Test the complete admin token generation workflow to verify bug fix"""
+        print("\n🔧 TESTING ADMIN TOKEN GENERATION WORKFLOW BUG FIX")
+        print("=" * 60)
+        
+        try:
+            # Step 1: Create exam first (this is the fix - exam must exist before token creation)
+            print("Step 1: Creating exam in database...")
+            test_exam = {
+                "title": "Bug Fix Test Exam - Mathematics",
+                "description": "Testing the admin token generation bug fix workflow",
+                "subject": "Mathematics", 
+                "duration": 90,
+                "instructions": "Please read all questions carefully",
+                "exam_type": "mcq",
+                "difficulty": "intermediate",
+                "content_source": "manual"
+            }
+            
+            response = self.session.post(f"{self.base_url}/assessments", 
+                                       json=test_exam, timeout=10)
+            
+            if response.status_code != 200:
+                self.log_test("Admin Token Workflow - Exam Creation", False, 
+                            f"Failed to create exam: {response.status_code}",
+                            f"Response: {response.text}")
+                return False
+            
+            exam_data = response.json()
+            exam_id = exam_data.get('id')
+            
+            if not exam_id:
+                self.log_test("Admin Token Workflow - Exam Creation", False, 
+                            "Exam created but no ID returned")
+                return False
+            
+            self.log_test("Admin Token Workflow - Exam Creation", True, 
+                        f"Exam created successfully with ID: {exam_id}",
+                        f"Title: {exam_data.get('title')}")
+            
+            # Step 2: Generate tokens using the exam ID (this should now work)
+            print("Step 2: Generating tokens with valid exam ID...")
+            token_requests = []
+            created_tokens = []
+            
+            # Generate multiple tokens to simulate "Generate 10 Tokens" functionality
+            for i in range(3):  # Test with 3 tokens for efficiency
+                token_request = {
+                    "exam_id": exam_id,
+                    "student_name": f"Student {i+1}",
+                    "max_usage": 1,
+                    "expires_in_hours": 24
+                }
+                
+                response = self.session.post(f"{self.base_url}/admin/create-token", 
+                                           json=token_request, timeout=10)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get('success') and data.get('token'):
+                        created_tokens.append(data.get('token'))
+                        self.log_test(f"Token Generation {i+1}", True, 
+                                    f"Token created: {data.get('token')}")
+                    else:
+                        self.log_test(f"Token Generation {i+1}", False, 
+                                    f"Token creation failed: {data.get('message')}")
+                        return False
+                else:
+                    self.log_test(f"Token Generation {i+1}", False, 
+                                f"HTTP error {response.status_code}: {response.text}")
+                    return False
+            
+            if len(created_tokens) != 3:
+                self.log_test("Admin Token Workflow - Token Generation", False, 
+                            f"Expected 3 tokens, got {len(created_tokens)}")
+                return False
+            
+            self.log_test("Admin Token Workflow - Token Generation", True, 
+                        f"Successfully generated {len(created_tokens)} tokens",
+                        f"Tokens: {created_tokens}")
+            
+            # Step 3: Verify tokens are in correct XXXX-XXX format
+            print("Step 3: Verifying token format...")
+            import re
+            token_pattern = r'^[A-Z0-9]{4}-[A-Z0-9]{3}$'
+            valid_format_count = 0
+            
+            for token in created_tokens:
+                if re.match(token_pattern, token):
+                    valid_format_count += 1
+                    self.log_test(f"Token Format ({token})", True, 
+                                "Token has correct XXXX-XXX format")
+                else:
+                    self.log_test(f"Token Format ({token})", False, 
+                                f"Token has invalid format: {token}")
+            
+            if valid_format_count != len(created_tokens):
+                self.log_test("Admin Token Workflow - Format Validation", False, 
+                            f"Only {valid_format_count}/{len(created_tokens)} tokens have correct format")
+                return False
+            
+            # Step 4: Verify tokens are stored in database
+            print("Step 4: Verifying tokens are stored in database...")
+            stored_tokens_count = 0
+            
+            for token in created_tokens:
+                test_request = {"token": token}
+                response = self.session.post(f"{self.base_url}/student/validate-token", 
+                                           json=test_request, timeout=10)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get('valid') and data.get('student_token') and data.get('exam_info'):
+                        stored_tokens_count += 1
+                        student_token = data.get('student_token')
+                        exam_info = data.get('exam_info')
+                        
+                        self.log_test(f"Token Storage ({token})", True, 
+                                    f"Token stored and validates correctly",
+                                    f"Student: {student_token.get('student_name')}, Exam: {exam_info.get('title')}")
+                    else:
+                        self.log_test(f"Token Storage ({token})", False, 
+                                    f"Token validation failed: {data}")
+                else:
+                    self.log_test(f"Token Storage ({token})", False, 
+                                f"Token validation request failed: {response.status_code}")
+            
+            if stored_tokens_count != len(created_tokens):
+                self.log_test("Admin Token Workflow - Database Storage", False, 
+                            f"Only {stored_tokens_count}/{len(created_tokens)} tokens stored correctly")
+                return False
+            
+            # Step 5: Test the specific bug scenario (undefined exam ID)
+            print("Step 5: Testing bug scenario (undefined exam ID)...")
+            invalid_token_request = {
+                "exam_id": "",  # Empty exam ID (simulates undefined)
+                "student_name": "Test Student",
+                "max_usage": 1,
+                "expires_in_hours": 24
+            }
+            
+            response = self.session.post(f"{self.base_url}/admin/create-token", 
+                                       json=invalid_token_request, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if not data.get('success'):
+                    self.log_test("Bug Scenario Test (Empty Exam ID)", True, 
+                                "Empty exam ID correctly rejected",
+                                f"Message: {data.get('message')}")
+                else:
+                    self.log_test("Bug Scenario Test (Empty Exam ID)", False, 
+                                "Empty exam ID should have been rejected")
+                    return False
+            else:
+                # 422 status is also acceptable for validation errors
+                if response.status_code == 422:
+                    self.log_test("Bug Scenario Test (Empty Exam ID)", True, 
+                                "Empty exam ID correctly rejected with 422 status")
+                else:
+                    self.log_test("Bug Scenario Test (Empty Exam ID)", False, 
+                                f"Unexpected status code: {response.status_code}")
+                    return False
+            
+            # Final verification: Test end-to-end workflow
+            print("Step 6: Final end-to-end workflow verification...")
+            workflow_success = True
+            
+            # Verify one token works in student portal
+            test_token = created_tokens[0]
+            validation_request = {"token": test_token}
+            response = self.session.post(f"{self.base_url}/student/validate-token", 
+                                       json=validation_request, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('valid'):
+                    exam_info = data.get('exam_info', {})
+                    if exam_info.get('id') == exam_id:
+                        self.log_test("End-to-End Workflow Verification", True, 
+                                    "Complete workflow successful: exam creation → token generation → student validation",
+                                    f"Token {test_token} validates against exam {exam_id}")
+                    else:
+                        workflow_success = False
+                        self.log_test("End-to-End Workflow Verification", False, 
+                                    f"Token linked to wrong exam: expected {exam_id}, got {exam_info.get('id')}")
+                else:
+                    workflow_success = False
+                    self.log_test("End-to-End Workflow Verification", False, 
+                                "Generated token does not validate in student portal")
+            else:
+                workflow_success = False
+                self.log_test("End-to-End Workflow Verification", False, 
+                            f"Student validation failed: {response.status_code}")
+            
+            if workflow_success:
+                self.log_test("ADMIN TOKEN GENERATION BUG FIX", True, 
+                            "🎉 BUG FIX VERIFIED: Complete admin token generation workflow working",
+                            f"Successfully created exam → generated {len(created_tokens)} tokens → validated in student portal")
+                return True
+            else:
+                self.log_test("ADMIN TOKEN GENERATION BUG FIX", False, 
+                            "Bug fix verification failed in end-to-end testing")
+                return False
+                
+        except Exception as e:
+            self.log_test("ADMIN TOKEN GENERATION BUG FIX", False, 
+                        f"Bug fix testing failed with exception: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests including Student Portal Authentication System"""
         print(f"🚀 Starting Backend API Tests for Student Portal Authentication System")
