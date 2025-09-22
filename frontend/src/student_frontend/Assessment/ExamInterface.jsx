@@ -35,7 +35,7 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
   const [answers, setAnswers] = useState({});
 
   // Get exam data from auth context, fallback to mock data
-  const examInfo = state.examInfo || {};
+  const examInfo = authState.examInfo || {};
   
   // Create complete exam data with fallbacks
   const examData = {
