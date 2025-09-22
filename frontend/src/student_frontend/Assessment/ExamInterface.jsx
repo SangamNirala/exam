@@ -104,7 +104,7 @@ const ExamInterface = () => {
       ...prev,
       [questionId]: answer
     }));
-    updateAnswer(questionId, answer);
+    // Store answer locally - in real implementation would sync with backend
   };
 
   const handleNextQuestion = () => {
