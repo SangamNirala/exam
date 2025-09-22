@@ -173,8 +173,18 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
   const currentAnswer = answers[currentQuestionData?.id];
   const progress = ((currentQuestion + 1) / examData.totalQuestions) * 100;
 
+  // Enhanced debugging for Loading exam issue
+  console.log('🔍 ExamInterface Debugging:');
+  console.log('- examData:', examData);
+  console.log('- examData.questions:', examData.questions);
+  console.log('- examData.questions?.length:', examData.questions?.length);
+  console.log('- currentQuestion:', currentQuestion);
+  console.log('- currentQuestionData:', currentQuestionData);
+  console.log('- authState.examInfo:', authState.examInfo);
+
   // Safety check - if no valid question data, show loading
   if (!currentQuestionData) {
+    console.log('❌ No currentQuestionData - showing Loading exam...');
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
