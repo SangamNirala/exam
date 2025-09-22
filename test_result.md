@@ -408,10 +408,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Face Verification Removal Testing Complete"
+    - "Admin Token Integration Testing Complete"
   stuck_tasks: []
   test_all: false
-  test_priority: "regression_testing_complete"
+  test_priority: "admin_token_integration_verified"
 
 agent_communication:
     - agent: "testing"
