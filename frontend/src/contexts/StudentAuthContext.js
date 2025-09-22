@@ -91,6 +91,8 @@ const authReducer = (state, action) => {
       };
     
     case ACTIONS.TOKEN_VALIDATION_SUCCESS:
+      console.log('🔍 StudentAuthContext: TOKEN_VALIDATION_SUCCESS reducer, examInfo:', action.payload.examInfo);
+      console.log('🔍 StudentAuthContext: examInfo.questions:', action.payload.examInfo?.questions);
       return {
         ...state,
         authToken: action.payload.token,
