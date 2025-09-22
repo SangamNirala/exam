@@ -167,7 +167,7 @@ const TokenValidator = () => {
                   {/* Character counter */}
                   <div className="flex justify-between items-center mt-2 text-sm">
                     <span className="text-slate-500">
-                      {token.length}/8 characters
+                      {token.length}/12 characters
                     </span>
                     {!isBlocked && (
                       <span className="text-slate-500">
