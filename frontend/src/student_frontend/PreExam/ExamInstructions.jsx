@@ -111,8 +111,7 @@ const ExamInstructions = () => {
   };
 
   const handleStartExam = () => {
-    // Set authentication as complete and move to exam
-    dispatch({ type: 'SET_AUTHENTICATED', payload: true });
+    // Move directly to exam step since user is already authenticated
     setStep('exam');
   };
 
