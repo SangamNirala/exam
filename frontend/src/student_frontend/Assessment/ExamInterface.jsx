@@ -96,7 +96,7 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
     if (timeRemaining === 0) {
       handleSubmitExam();
     }
-  }, [timeRemaining]);
+  }, [timeRemaining, handleSubmitExam]);
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
