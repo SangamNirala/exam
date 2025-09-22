@@ -187,32 +187,45 @@ const studentReducer = (state, action) => {
 export const StudentProvider = ({ children }) => {
   const [state, dispatch] = useReducer(studentReducer, initialState);
 
-  // Load persisted student state
+  // Load persisted student state - FIXED: Use batch dispatch to prevent infinite loop
   useEffect(() => {
     const savedStudentState = localStorage.getItem('assessai-student-state');
     if (savedStudentState) {
       try {
         const parsedState = JSON.parse(savedStudentState);
+        
+        // Batch all state updates into a single dispatch to prevent infinite re-renders
+        const stateToLoad = {
+          accessibility: {},
+          preferences: {},
+          examHistory: []
+        };
+        
         if (parsedState.accessibility) {
+          // Convert true values to the correct accessibility state
           Object.keys(parsedState.accessibility).forEach(key => {
             if (parsedState.accessibility[key]) {
-              dispatch({ type: 'TOGGLE_ACCESSIBILITY', payload: key });
+              stateToLoad.accessibility[key] = true;
             }
           });
         }
+        
         if (parsedState.preferences) {
-          dispatch({ type: 'UPDATE_PREFERENCES', payload: parsedState.preferences });
+          stateToLoad.preferences = parsedState.preferences;
         }
-        if (parsedState.examHistory) {
-          parsedState.examHistory.forEach(exam => {
-            dispatch({ type: 'ADD_TO_EXAM_HISTORY', payload: exam });
-          });
+        
+        if (parsedState.examHistory && Array.isArray(parsedState.examHistory)) {
+          stateToLoad.examHistory = parsedState.examHistory;
         }
+        
+        // Single dispatch call to load all saved state
+        dispatch({ type: 'LOAD_SAVED_STATE', payload: stateToLoad });
+        
       } catch (error) {
         console.error('Error loading student state:', error);
       }
     }
-  }, []);
+  }, []); // Empty dependency array - only run once on mount
 
   // Persist student state changes - OPTIMIZED: Use ref to prevent frequent writes
   useEffect(() => {
