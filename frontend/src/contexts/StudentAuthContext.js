@@ -210,9 +210,9 @@ export const StudentAuthProvider = ({ children }) => {
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
   
   // Action creators
-  const setStep = (step) => {
+  const setStep = useCallback((step) => {
     dispatch({ type: ACTIONS.SET_STEP, payload: step });
-  };
+  }, []);
   
   const setLoading = (loading) => {
     dispatch({ type: ACTIONS.SET_LOADING, payload: loading });
