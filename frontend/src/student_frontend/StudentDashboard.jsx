@@ -104,7 +104,7 @@ const StudentDashboard = () => {
   }
 
   if (state.currentView === 'assessment') {
-    return <ExamInterface />;
+    return <ExamInterface setView={setView} toggleAccessibility={toggleAccessibility} />;
   }
 
   const ExamCard = ({ exam }) => (
