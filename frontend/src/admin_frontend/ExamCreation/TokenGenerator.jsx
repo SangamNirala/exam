@@ -57,7 +57,47 @@ const TokenGenerator = () => {
       // Get backend URL from environment
       const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
       
-      // Generate tokens using backend API
+      let examId = examData.id;
+      
+      // If exam doesn't have an ID, create it in the database first
+      if (!examId) {
+        console.log('Exam not yet saved. Creating exam in database...');
+        
+        // Prepare exam data for backend
+        const examPayload = {
+          title: examData.title || 'Untitled Assessment',
+          description: examData.description || '',
+          subject: examData.subject || '',
+          duration: examData.duration || 60,
+          instructions: examData.instructions || '',
+          exam_type: examData.examType || 'mcq',
+          difficulty: examData.difficulty || 'intermediate',
+          content_source: examData.contentSource || 'manual'
+        };
+        
+        // Create exam in database
+        const createExamResponse = await fetch(`${backendUrl}/api/assessments`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(examPayload),
+        });
+        
+        if (!createExamResponse.ok) {
+          throw new Error('Failed to create exam in database');
+        }
+        
+        const createdExam = await createExamResponse.json();
+        examId = createdExam.id;
+        
+        // Update examData with the new ID in the context
+        dispatch({ type: 'UPDATE_EXAM_DATA', payload: { id: examId } });
+        
+        console.log(`Exam created successfully with ID: ${examId}`);
+      }
+      
+      // Now generate tokens using the exam ID
       const newTokens = [];
       
       for (let i = 0; i < tokenCount; i++) {
@@ -67,7 +107,7 @@ const TokenGenerator = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            exam_id: examData.id,
+            exam_id: examId,
             student_name: null,
             max_usage: examData.tokenSettings.expiryType === 'uses' ? examData.tokenSettings.expiryValue : 1,
             expires_in_hours: examData.tokenSettings.expiryType === 'time' ? examData.tokenSettings.expiryValue : 24
@@ -101,7 +141,7 @@ const TokenGenerator = () => {
       if (newTokens.length > 0) {
         setTokens(newTokens);
         setGeneratedTokens(newTokens);
-        console.log(`Successfully generated ${newTokens.length} tokens`);
+        console.log(`Successfully generated ${newTokens.length} tokens for exam ${examId}`);
       } else {
         alert('Failed to generate any tokens. Please check your exam configuration.');
       }
