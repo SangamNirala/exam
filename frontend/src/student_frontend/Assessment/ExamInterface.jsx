@@ -428,9 +428,9 @@ const ExamInterface = () => {
 
                   <div className="flex items-center space-x-4">
                     <span className="text-sm text-slate-600">
-                      {Object.keys(answers).length} of {mockExam.totalQuestions} answered
+                      {Object.keys(answers).length} of {examData.totalQuestions} answered
                     </span>
-                    {currentQuestion === mockExam.totalQuestions - 1 ? (
+                    {currentQuestion === examData.totalQuestions - 1 ? (
                       <Button 
                         onClick={handleSubmitExam}
                         className="bg-green-600 hover:bg-green-700 text-white rounded-xl"
