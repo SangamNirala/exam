@@ -182,7 +182,7 @@ const LandingPage = ({ onRoleSelect }) => {
             </p>
             
             {/* Role Selection */}
-            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-16">
+            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-16">
               <Button 
                 onClick={() => onRoleSelect('admin')}
                 size="lg"
@@ -201,6 +201,16 @@ const LandingPage = ({ onRoleSelect }) => {
               >
                 <Award className="w-6 h-6 mr-3 group-hover:scale-110 transition-transform" />
                 Student Portal
+                <ArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
+              </Button>
+
+              <Button 
+                onClick={() => onRoleSelect('taketest')}
+                size="lg"
+                className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white px-8 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group"
+              >
+                <Play className="w-6 h-6 mr-3 group-hover:scale-110 transition-transform" />
+                Take Test
                 <ArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>
