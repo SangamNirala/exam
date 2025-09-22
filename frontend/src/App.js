@@ -9,6 +9,7 @@ import LandingPage from "./components/LandingPage";
 import Dashboard from "./components/Dashboard";
 import NewAdminDashboard from "./admin_frontend/NewAdminDashboard";
 import AuthenticationFlow from "./student_frontend/Auth/AuthenticationFlow";
+import TakeTest from "./components/TakeTest";
 
 function App() {
   return (
