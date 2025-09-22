@@ -1653,6 +1653,95 @@ class BackendTester:
             self.log_test("Token Validation Response Structure", False, f"Testing failed: {str(e)}")
             return False
 
+    def test_specific_token_iywx_vl4(self):
+        """Test the specific token IYWX-VL4 mentioned in the review request"""
+        print("\n🎯 TESTING SPECIFIC TOKEN IYWX-VL4 FOR LOADING EXAM BUG")
+        print("-" * 55)
+        
+        try:
+            test_request = {"token": "IYWX-VL4"}
+            
+            response = self.session.post(f"{self.base_url}/student/validate-token", 
+                                       json=test_request, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                valid = data.get('valid', False)
+                student_token = data.get('student_token')
+                exam_info = data.get('exam_info')
+                
+                if valid and student_token and exam_info:
+                    # Verify response structure
+                    questions = exam_info.get('questions', [])
+                    
+                    # Check if we have the expected 3 MCQ questions
+                    if len(questions) == 3:
+                        # Verify specific question content as mentioned in review request
+                        expected_questions = [
+                            "Which programming language is known for its simplicity and readability?",
+                            "What does HTML stand for?",
+                            "Which of the following is a JavaScript framework?"
+                        ]
+                        
+                        questions_match = True
+                        question_details = []
+                        
+                        for i, question in enumerate(questions):
+                            question_text = question.get('question', '')
+                            question_type = question.get('type', '')
+                            options = question.get('options', [])
+                            correct_answer = question.get('correct_answer')
+                            
+                            # Verify MCQ structure
+                            if (question_type == 'mcq' and 
+                                len(options) == 4 and 
+                                isinstance(correct_answer, int) and 
+                                0 <= correct_answer <= 3):
+                                
+                                question_details.append(f"Q{i+1}: {question_text[:50]}... (MCQ with {len(options)} options)")
+                            else:
+                                questions_match = False
+                                question_details.append(f"Q{i+1}: Invalid MCQ structure")
+                        
+                        if questions_match:
+                            self.log_test("Token IYWX-VL4 Validation", True, 
+                                        "Token validated successfully with complete exam data", 
+                                        f"Student: {student_token.get('student_name')}, Exam: {exam_info.get('title')}, Questions: {len(questions)}")
+                            
+                            self.log_test("Token IYWX-VL4 Question Structure", True, 
+                                        "All 3 questions have proper MCQ structure", 
+                                        "; ".join(question_details))
+                            
+                            self.log_test("Token IYWX-VL4 Response Format", True, 
+                                        "Response includes all required fields for ExamInterface", 
+                                        f"valid: {valid}, student_token: present, exam_info: present with {len(questions)} questions")
+                            
+                            return True
+                        else:
+                            self.log_test("Token IYWX-VL4 Question Structure", False, 
+                                        "Questions do not have proper MCQ structure", 
+                                        "; ".join(question_details))
+                            return False
+                    else:
+                        self.log_test("Token IYWX-VL4 Question Count", False, 
+                                    f"Expected 3 questions but found {len(questions)}", 
+                                    f"Questions: {[q.get('question', 'No question text')[:30] + '...' for q in questions]}")
+                        return False
+                else:
+                    self.log_test("Token IYWX-VL4 Validation", False, 
+                                "Token validation response incomplete", 
+                                f"Valid: {valid}, Student token: {bool(student_token)}, Exam info: {bool(exam_info)}")
+                    return False
+            else:
+                self.log_test("Token IYWX-VL4 Validation", False, 
+                            f"Token validation failed with status {response.status_code}",
+                            f"Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Token IYWX-VL4 Validation", False, f"Request failed: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests including Student Portal Authentication System"""
         print(f"🚀 Starting Backend API Tests for Student Portal Authentication System")
