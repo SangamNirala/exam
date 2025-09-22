@@ -79,10 +79,6 @@ const TakeTest = () => {
     setValidationResult(result);
     
     if (result.success) {
-      // Debug: Log the validation result to see what data we're getting
-      console.log('TakeTest - Token validation result:', result);
-      console.log('TakeTest - Auth state examInfo:', examInfo);
-      
       // Proceed directly to exam after successful token validation (skip instructions)
       setTimeout(() => {
         setCurrentStep('exam');
