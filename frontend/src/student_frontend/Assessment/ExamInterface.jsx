@@ -137,9 +137,9 @@ const ExamInterface = () => {
     setView('results');
   };
 
-  const currentQuestionData = mockExam.questions[currentQuestion];
+  const currentQuestionData = examData.questions[currentQuestion];
   const currentAnswer = answers[currentQuestionData?.id];
-  const progress = ((currentQuestion + 1) / mockExam.totalQuestions) * 100;
+  const progress = ((currentQuestion + 1) / examData.totalQuestions) * 100;
 
   const AccessibilityButton = ({ feature, icon: Icon, activeIcon: ActiveIcon, label }) => (
     <Button
