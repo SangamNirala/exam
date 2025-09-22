@@ -40,7 +40,7 @@ const TakeTest = () => {
   // Reset validation state when component mounts
   useEffect(() => {
     resetTokenValidation();
-  }, [resetTokenValidation]);
+  }, []); // Empty dependency array - only run on mount
 
   // Handle token input changes
   const handleTokenChange = (value) => {
