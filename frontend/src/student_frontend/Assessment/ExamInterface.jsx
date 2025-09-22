@@ -163,7 +163,7 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
             <div className="flex items-center space-x-4">
               <Button 
                 variant="ghost" 
-                onClick={() => setView('dashboard')}
+                onClick={() => console.log('Exit assessment')}
                 className="rounded-xl"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
