@@ -21,23 +21,26 @@ import {
   Book
 } from 'lucide-react';
 import ExamInterface from '../student_frontend/Assessment/ExamInterface';
+import { useStudentAuth } from '../contexts/StudentAuthContext';
 import { useStudent } from '../contexts/StudentContext';
 
 const TakeTest = () => {
+  const { state, validateToken, setStep, resetTokenValidation } = useStudentAuth();
   const [currentStep, setCurrentStep] = useState('token-entry');
   const [token, setToken] = useState('');
   const [showToken, setShowToken] = useState(false);
-  const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
-  const [examData, setExamData] = useState(null);
-  const [attempts, setAttempts] = useState(0);
-  const maxAttempts = 3;
 
-  // Get backend URL from environment
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  const { tokenValidation, examInfo } = state;
+  const { isValidating, error, attempts, maxAttempts } = tokenValidation;
 
   // Demo tokens for easy access
   const demoTokens = ['DEMO1234', 'TEST5678', 'SAMPLE99'];
+
+  // Reset validation state when component mounts
+  useEffect(() => {
+    resetTokenValidation();
+  }, [resetTokenValidation]);
 
   // Handle token input changes
   const handleTokenChange = (value) => {
@@ -69,54 +72,17 @@ const TakeTest = () => {
         success: false,
         message: 'Invalid token format. Token should be 8 alphanumeric characters or in XXXX-XXX format.'
       });
-      setAttempts(prev => prev + 1);
       return;
     }
 
-    setIsValidating(true);
+    const result = await validateToken(token);
+    setValidationResult(result);
     
-    try {
-      const response = await fetch(`${backendUrl}/api/student/validate-token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.valid) {
-        setValidationResult({
-          success: true,
-          message: 'Token validated successfully! Starting exam...'
-        });
-        
-        // Set exam data for the ExamInterface
-        setExamData({
-          token: data.student_token,
-          examInfo: data.exam_info
-        });
-
-        // Proceed directly to exam after a short delay
-        setTimeout(() => {
-          setCurrentStep('exam');
-        }, 2000);
-      } else {
-        setValidationResult({
-          success: false,
-          message: data.message || 'Invalid token. Please try again.'
-        });
-        setAttempts(prev => prev + 1);
-      }
-    } catch (error) {
-      setValidationResult({
-        success: false,
-        message: 'Connection error. Please check your internet connection and try again.'
-      });
-      setAttempts(prev => prev + 1);
-    } finally {
-      setIsValidating(false);
+    if (result.success) {
+      // Proceed directly to exam after successful token validation (skip instructions)
+      setTimeout(() => {
+        setCurrentStep('exam');
+      }, 2000);
     }
   };
 
@@ -136,7 +102,7 @@ const TakeTest = () => {
   };
 
   // If user is in exam, show the ExamInterface
-  if (currentStep === 'exam' && examData) {
+  if (currentStep === 'exam') {
     return <ExamInterface />;
   }
 
