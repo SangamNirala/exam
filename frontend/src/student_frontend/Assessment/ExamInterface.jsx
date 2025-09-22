@@ -139,10 +139,15 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
     questions: hasQuestions ? examQuestions : fallbackQuestions
   };
 
-  // Debug logging for empty questions (can be removed in production)
-  if (!hasQuestions) {
-    console.log('⚠️ ExamInterface: No questions provided by backend, using fallback questions');
-  }
+  // Debug logging to track question source
+  console.log('🎯 ExamInterface Final State:', {
+    examInfoQuestionsLength: examInfo.questions?.length || 0,
+    examQuestionsLength: examQuestions?.length || 0,
+    hasQuestions,
+    finalQuestionsLength: examData.questions?.length || 0,
+    usingFallback: !hasQuestions,
+    firstQuestionPreview: examData.questions?.[0]?.question?.substring(0, 50) + '...' || 'No questions'
+  });
 
   // Define handleSubmitExam with stable dependencies to prevent infinite loop
   const handleSubmitExam = useCallback(() => {
