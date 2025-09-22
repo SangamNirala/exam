@@ -40,86 +40,55 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
   // Get exam data from auth context, fallback to mock data
   const examInfo = authState.examInfo || {};
   
-  // If examInfo is missing questions array, fetch them from backend
+  // Handle questions from examInfo or fetch from backend if needed
+  const [examQuestions, setExamQuestions] = useState([]);
   const [questionsLoaded, setQuestionsLoaded] = useState(false);
-  const [examQuestions, setExamQuestions] = useState(examInfo.questions || []);
 
   useEffect(() => {
-    const fetchQuestions = async () => {
-      if (!examInfo.questions && examInfo.id && !questionsLoaded) {
+    const loadQuestions = async () => {
+      console.log('🔍 Loading questions, examInfo:', {
+        hasQuestions: examInfo.questions && examInfo.questions.length > 0,
+        questionsLength: examInfo.questions?.length || 0,
+        examId: examInfo.id
+      });
+
+      // First priority: Use questions from examInfo if they exist and have content
+      if (examInfo.questions && examInfo.questions.length > 0) {
+        console.log('✅ Using questions from examInfo (token validation response)');
+        setExamQuestions(examInfo.questions);
+        setQuestionsLoaded(true);
+        return;
+      }
+
+      // Second priority: Try to fetch from backend if we have an exam ID
+      if (examInfo.id && !questionsLoaded) {
+        console.log('🔄 Attempting to fetch questions from backend...');
         try {
           const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
           const response = await fetch(`${backendUrl}/api/assessments/${examInfo.id}/questions`);
           if (response.ok) {
             const data = await response.json();
-            console.log('✅ Fetched questions from backend:', data);
-            setExamQuestions(data.questions || []);
-          } else {
-            console.log('❌ Failed to fetch questions, using fallback');
-            setExamQuestions([
-              {
-                id: 1,
-                type: 'mcq',
-                question: "What does 'WWW' stand for in web addresses?",
-                options: [
-                  "World Wide Web",
-                  "World Web Width",
-                  "Web World Wide", 
-                  "Wide World Web"
-                ],
-                correctAnswer: 0
-              },
-              {
-                id: 2,
-                type: 'mcq',
-                question: "Which of the following is considered safe password practice?",
-                options: [
-                  "Using your name and birth year",
-                  "Using the same password for all accounts",
-                  "Using a combination of letters, numbers, and symbols",
-                  "Sharing passwords with trusted friends"
-                ],
-                correctAnswer: 2
-              }
-            ]);
+            if (data.questions && data.questions.length > 0) {
+              console.log('✅ Fetched questions from backend API');
+              setExamQuestions(data.questions);
+              setQuestionsLoaded(true);
+              return;
+            }
           }
         } catch (error) {
-          console.error('Error fetching questions:', error);
-          setExamQuestions([
-            {
-              id: 1,
-              type: 'mcq',
-              question: "What does 'WWW' stand for in web addresses?",
-              options: [
-                "World Wide Web",
-                "World Web Width",
-                "Web World Wide", 
-                "Wide World Web"
-              ],
-              correctAnswer: 0
-            },
-            {
-              id: 2,
-              type: 'mcq',
-              question: "Which of the following is considered safe password practice?",
-              options: [
-                "Using your name and birth year",
-                "Using the same password for all accounts",
-                "Using a combination of letters, numbers, and symbols",
-                "Sharing passwords with trusted friends"
-              ],
-              correctAnswer: 2
-            }
-          ]);
+          console.error('❌ Error fetching questions from backend:', error);
         }
-        setQuestionsLoaded(true);
-      } else if (examInfo.questions) {
-        setExamQuestions(examInfo.questions);
+      }
+
+      // Last resort: Use fallback questions only if no real questions available
+      if (!questionsLoaded) {
+        console.log('⚠️ No questions available, using fallback questions');
+        setExamQuestions([]);  // Set empty array, fallback will be handled in examData
         setQuestionsLoaded(true);
       }
     };
 
-    fetchQuestions();
+    loadQuestions();
   }, [examInfo.id, examInfo.questions, questionsLoaded]);
   
   // Create complete exam data with fallbacks
