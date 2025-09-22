@@ -6,6 +6,7 @@ import TokenValidator from './TokenValidator';
 // import FacialRecognitionSetup from '../Verification/FacialRecognitionSetup';
 // import FaceCapture from '../Verification/FaceCapture';
 import ExamInstructions from '../PreExam/ExamInstructions';
+import ExamInterface from '../Assessment/ExamInterface';
 
 const AuthenticationFlow = () => {
   const { state } = useStudentAuth();
