@@ -286,7 +286,7 @@ async def get_assessment(assessment_id: str):
     assessment = await db.assessments.find_one({"id": assessment_id})
     if assessment:
         return Assessment(**assessment)
-    return {"error": "Assessment not found"}
+    raise HTTPException(status_code=404, detail="Assessment not found")
 
 @api_router.put("/assessments/{assessment_id}", response_model=Assessment)
 async def update_assessment(assessment_id: str, update_data: AssessmentUpdate):
