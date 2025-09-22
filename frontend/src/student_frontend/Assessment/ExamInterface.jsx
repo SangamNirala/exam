@@ -144,16 +144,13 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
 
   const AccessibilityButton = ({ feature, icon: Icon, activeIcon: ActiveIcon, label }) => (
     <Button
-      variant={state.accessibility[feature] ? "default" : "outline"}
+      variant="outline"
       size="sm"
       className="rounded-lg"
-      onClick={() => toggleAccessibility(feature)}
+      onClick={() => console.log(`Toggle ${feature}`)}
       title={label}
     >
-      {state.accessibility[feature] && ActiveIcon ? 
-        <ActiveIcon className="w-4 h-4" /> : 
-        <Icon className="w-4 h-4" />
-      }
+      <Icon className="w-4 h-4" />
     </Button>
   );
 
