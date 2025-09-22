@@ -33,8 +33,7 @@ const AuthenticationFlow = () => {
         return <ExamInstructions />;
       
       case 'exam':
-        // This would be handled by the main student context
-        return <div>Redirecting to exam...</div>;
+        return <ExamInterface />;
       
       default:
         return <StudentPortalEntry />;
