@@ -2183,10 +2183,17 @@ class BackendTester:
 if __name__ == "__main__":
     import sys
     
-    # Check if focused testing is requested
-    if len(sys.argv) > 1 and sys.argv[1] == "--focused":
-        tester = BackendTester()
-        success = tester.run_focused_token_validation_tests()
+    # Check if specific testing is requested
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "--focused":
+            tester = BackendTester()
+            success = tester.run_focused_token_validation_tests()
+        elif sys.argv[1] == "--loading-bug":
+            tester = BackendTester()
+            success = tester.run_loading_exam_bug_tests_only()
+        else:
+            print("Usage: python backend_test.py [--focused|--loading-bug]")
+            sys.exit(1)
     else:
         tester = BackendTester()
         success = tester.run_all_tests()
