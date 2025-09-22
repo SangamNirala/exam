@@ -25,15 +25,15 @@ import {
 import { useStudentAuth } from '../../contexts/StudentAuthContext';
 
 const ExamInterface = () => {
-  const { state, setView, updateAnswer, toggleAccessibility } = useStudent();
+  const { state } = useStudentAuth();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(1800); // 30 minutes in seconds
   const [isPaused, setIsPaused] = useState(false);
   const [flaggedQuestions, setFlaggedQuestions] = useState(new Set());
   const [answers, setAnswers] = useState({});
 
-  // Mock exam data
-  const mockExam = {
+  // Get exam data from auth context, fallback to mock data
+  const examData = state.examInfo || {
     title: "Digital Literacy Fundamentals",
     totalQuestions: 15,
     questions: [
