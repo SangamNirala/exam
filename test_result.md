@@ -450,10 +450,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Student Portal Exam Interface Backend Testing - COMPLETED"
+    - "Backend Token Validation Testing - COMPLETED"
   stuck_tasks: []
   test_all: false
-  test_priority: "backend_exam_interface_verified"
+  test_priority: "backend_token_validation_verified"
 
   - task: "Backend Token Validation Response Structure Testing"
     implemented: true
