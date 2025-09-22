@@ -45,6 +45,9 @@ const AppContent = () => {
     } else if (role === 'student') {
       // Redirect to new student portal
       window.location.href = '/student-portal';
+    } else if (role === 'taketest') {
+      // Redirect to streamlined take test
+      window.location.href = '/take-test';
     } else {
       setCurrentView('dashboard');
     }
