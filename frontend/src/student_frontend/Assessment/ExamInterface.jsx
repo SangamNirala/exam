@@ -109,10 +109,10 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
 
   // Auto-submit when time runs out
   useEffect(() => {
-    if (timeRemaining === 0) {
-      handleSubmitExam();
+    if (timeRemaining === 0 && submitExamRef.current) {
+      submitExamRef.current();
     }
-  }, [timeRemaining, handleSubmitExam]);
+  }, [timeRemaining]);
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
