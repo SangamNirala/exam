@@ -26,7 +26,8 @@ import { useStudentAuth } from '../../contexts/StudentAuthContext';
 import { useStudent } from '../../contexts/StudentContext';
 
 const ExamInterface = ({ setView, toggleAccessibility }) => {
-  const { state } = useStudentAuth();
+  const { state: authState } = useStudentAuth();
+  const { state: studentState, dispatch } = useStudent();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(1800); // 30 minutes in seconds
   const [isPaused, setIsPaused] = useState(false);
