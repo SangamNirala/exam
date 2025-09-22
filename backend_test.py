@@ -1469,6 +1469,190 @@ class BackendTester:
                         f"Bug fix testing failed with exception: {str(e)}")
             return False
 
+    def test_token_validation_response_structure(self):
+        """CRITICAL: Test token validation response structure for ExamInterface debugging"""
+        print("\n🎯 CRITICAL: TESTING TOKEN VALIDATION RESPONSE STRUCTURE")
+        print("=" * 70)
+        
+        try:
+            # Test demo tokens first
+            demo_tokens = ["DEMO1234", "TEST5678", "SAMPLE99"]
+            
+            for token in demo_tokens:
+                print(f"\n🔍 Testing token: {token}")
+                test_request = {"token": token}
+                
+                response = self.session.post(f"{self.base_url}/student/validate-token", 
+                                           json=test_request, timeout=10)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    # Log complete response structure
+                    print(f"📋 COMPLETE RESPONSE STRUCTURE for {token}:")
+                    print(json.dumps(data, indent=2, default=str))
+                    
+                    # Verify critical fields for ExamInterface
+                    exam_info = data.get('exam_info', {})
+                    questions = exam_info.get('questions', [])
+                    
+                    print(f"\n🔍 CRITICAL ANALYSIS for {token}:")
+                    print(f"   ✓ Valid: {data.get('valid')}")
+                    print(f"   ✓ Exam Info Present: {bool(exam_info)}")
+                    print(f"   ✓ Questions Array Present: {bool(questions)}")
+                    print(f"   ✓ Questions Count: {len(questions)}")
+                    print(f"   ✓ Question Count Field: {exam_info.get('question_count')}")
+                    
+                    if questions:
+                        sample_question = questions[0]
+                        print(f"   ✓ Sample Question Structure:")
+                        print(f"     - ID: {sample_question.get('id')}")
+                        print(f"     - Type: {sample_question.get('type')}")
+                        print(f"     - Question: {sample_question.get('question', '')[:50]}...")
+                        print(f"     - Options: {len(sample_question.get('options', []))} options")
+                        print(f"     - Correct Answer: {sample_question.get('correct_answer')}")
+                        
+                        # Verify MCQ structure
+                        if sample_question.get('type') == 'mcq':
+                            options = sample_question.get('options', [])
+                            correct_answer = sample_question.get('correct_answer')
+                            
+                            mcq_valid = (
+                                len(options) >= 2 and 
+                                correct_answer is not None and 
+                                0 <= correct_answer < len(options)
+                            )
+                            
+                            print(f"     - MCQ Structure Valid: {mcq_valid}")
+                            
+                            if mcq_valid:
+                                self.log_test(f"Token Validation Structure ({token})", True, 
+                                            f"Complete response structure valid for ExamInterface", 
+                                            f"Questions: {len(questions)}, MCQ structure: valid")
+                            else:
+                                self.log_test(f"Token Validation Structure ({token})", False, 
+                                            f"MCQ structure invalid", 
+                                            f"Options: {len(options)}, Correct answer: {correct_answer}")
+                        else:
+                            self.log_test(f"Token Validation Structure ({token})", True, 
+                                        f"Question structure valid for type: {sample_question.get('type')}")
+                    else:
+                        self.log_test(f"Token Validation Structure ({token})", False, 
+                                    "No questions found in exam_info - this causes ExamInterface loading issue", 
+                                    f"exam_info.questions is empty or undefined")
+                else:
+                    self.log_test(f"Token Validation Structure ({token})", False, 
+                                f"Token validation failed with status {response.status_code}",
+                                f"Response: {response.text}")
+            
+            # Test admin tokens if available
+            print(f"\n🔍 Testing Admin Tokens (if available):")
+            
+            # Try to create an admin token for testing
+            test_assessment = {
+                "title": "Token Structure Test Assessment",
+                "description": "Assessment for testing token validation response structure",
+                "subject": "Computer Science",
+                "duration": 45,
+                "exam_type": "mcq",
+                "difficulty": "intermediate"
+            }
+            
+            # Add some questions to the assessment
+            assessment_response = self.session.post(f"{self.base_url}/assessments", 
+                                                  json=test_assessment, timeout=10)
+            
+            if assessment_response.status_code == 200:
+                exam_id = assessment_response.json().get('id')
+                
+                # Add questions to the assessment
+                sample_questions = [
+                    {
+                        "type": "mcq",
+                        "question": "What is the primary purpose of an API?",
+                        "options": [
+                            "To store data in databases",
+                            "To provide interface between software components",
+                            "To create user interfaces",
+                            "To manage server hardware"
+                        ],
+                        "correct_answer": 1,
+                        "difficulty": "intermediate",
+                        "estimated_time": 3,
+                        "tags": ["api", "software"],
+                        "points": 2.0
+                    },
+                    {
+                        "type": "mcq",
+                        "question": "Which HTTP method is typically used to retrieve data?",
+                        "options": ["POST", "GET", "PUT", "DELETE"],
+                        "correct_answer": 1,
+                        "difficulty": "beginner",
+                        "estimated_time": 2,
+                        "tags": ["http", "web"],
+                        "points": 1.0
+                    }
+                ]
+                
+                for question in sample_questions:
+                    self.session.post(f"{self.base_url}/assessments/{exam_id}/questions", 
+                                    json=question, timeout=10)
+                
+                # Create admin token
+                token_request = {
+                    "exam_id": exam_id,
+                    "student_name": "Test Student",
+                    "max_usage": 1,
+                    "expires_in_hours": 24
+                }
+                
+                token_response = self.session.post(f"{self.base_url}/admin/create-token", 
+                                                 json=token_request, timeout=10)
+                
+                if token_response.status_code == 200:
+                    admin_token = token_response.json().get('token')
+                    
+                    if admin_token:
+                        print(f"\n🔍 Testing admin token: {admin_token}")
+                        test_request = {"token": admin_token}
+                        
+                        response = self.session.post(f"{self.base_url}/student/validate-token", 
+                                                   json=test_request, timeout=10)
+                        
+                        if response.status_code == 200:
+                            data = response.json()
+                            
+                            print(f"📋 COMPLETE ADMIN TOKEN RESPONSE STRUCTURE:")
+                            print(json.dumps(data, indent=2, default=str))
+                            
+                            exam_info = data.get('exam_info', {})
+                            questions = exam_info.get('questions', [])
+                            
+                            print(f"\n🔍 ADMIN TOKEN ANALYSIS:")
+                            print(f"   ✓ Valid: {data.get('valid')}")
+                            print(f"   ✓ Questions Count: {len(questions)}")
+                            print(f"   ✓ Expected Questions: 2")
+                            print(f"   ✓ Question Count Match: {len(questions) == 2}")
+                            
+                            if len(questions) == 2:
+                                self.log_test("Admin Token Validation Structure", True, 
+                                            f"Admin token returns correct question structure", 
+                                            f"Questions: {len(questions)}, All questions present")
+                            else:
+                                self.log_test("Admin Token Validation Structure", False, 
+                                            f"Admin token question count mismatch", 
+                                            f"Expected: 2, Got: {len(questions)}")
+                        else:
+                            self.log_test("Admin Token Validation Structure", False, 
+                                        f"Admin token validation failed")
+            
+            print(f"\n🎯 TOKEN VALIDATION STRUCTURE TESTING COMPLETE")
+            return True
+            
+        except Exception as e:
+            self.log_test("Token Validation Response Structure", False, f"Testing failed: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests including Student Portal Authentication System"""
         print(f"🚀 Starting Backend API Tests for Student Portal Authentication System")
