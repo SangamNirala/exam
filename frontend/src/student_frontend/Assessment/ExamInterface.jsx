@@ -105,7 +105,7 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [isPaused]);
+  }, [isPaused, timeRemaining]); // Added timeRemaining to dependencies
 
   // Auto-submit when time runs out
   useEffect(() => {
