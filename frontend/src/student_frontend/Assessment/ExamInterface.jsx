@@ -108,7 +108,7 @@ const ExamInterface = () => {
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestion < mockExam.totalQuestions - 1) {
+    if (currentQuestion < examData.totalQuestions - 1) {
       setCurrentQuestion(currentQuestion + 1);
     }
   };
