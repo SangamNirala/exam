@@ -12,12 +12,6 @@ const AuthenticationFlow = () => {
   const { state, setStep } = useStudentAuth();
   const { currentStep } = state;
 
-  // Debug logging to track authentication flow issues
-  console.log('🔍 AuthenticationFlow Debug:');
-  console.log('- currentStep:', currentStep);
-  console.log('- state.examInfo:', state.examInfo);
-  console.log('- state.authToken:', state.authToken);
-
   // Handle exam completion - transition to results
   const handleExamCompletion = () => {
     setStep('results');
