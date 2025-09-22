@@ -54,10 +54,7 @@ const TakeTest = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    console.log('🔍 TakeTest: handleSubmit called with token:', token);
-    
     if (!token.trim()) {
-      console.log('❌ TakeTest: Empty token');
       setValidationResult({
         success: false,
         message: 'Please enter your exam token'
@@ -70,10 +67,7 @@ const TakeTest = () => {
     const isValidDemoFormat = /^[A-Z0-9]{8}$/.test(token);
     const isValidAdminFormat = /^[A-Z0-9]{4}-[A-Z0-9]{3,4}$/.test(token);
     
-    console.log('🔍 TakeTest: Token format check - isDemoToken:', isDemoToken, 'isValidDemoFormat:', isValidDemoFormat, 'isValidAdminFormat:', isValidAdminFormat);
-    
     if (!isDemoToken && !isValidDemoFormat && !isValidAdminFormat) {
-      console.log('❌ TakeTest: Invalid token format');
       setValidationResult({
         success: false,
         message: 'Invalid token format. Token should be 8 alphanumeric characters or in XXXX-XXX format.'
@@ -81,20 +75,14 @@ const TakeTest = () => {
       return;
     }
 
-    console.log('🔍 TakeTest: Calling validateToken...');
     const result = await validateToken(token);
-    console.log('🔍 TakeTest: Token validation result:', result);
     setValidationResult(result);
     
     if (result.success) {
-      console.log('✅ TakeTest: Token validation successful, setting step to exam in 2 seconds');
       // Proceed directly to exam after successful token validation (skip instructions)
       setTimeout(() => {
-        console.log('✅ TakeTest: Setting currentStep to exam');
         setCurrentStep('exam');
       }, 2000);
-    } else {
-      console.log('❌ TakeTest: Token validation failed:', result.message);
     }
   };
 
