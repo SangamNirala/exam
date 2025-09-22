@@ -53,26 +53,65 @@ const TokenGenerator = () => {
   const generateTokens = async () => {
     setIsGenerating(true);
     
-    // Simulate generation delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const newTokens = Array.from({ length: tokenCount }, (_, index) => ({
-      id: `token-${Date.now()}-${index}`,
-      token: generateToken(),
-      status: 'active',
-      createdAt: new Date(),
-      expiresAt: examData.tokenSettings.expiryType === 'time' 
-        ? new Date(Date.now() + examData.tokenSettings.expiryValue * 60 * 60 * 1000)
-        : null,
-      maxUses: examData.tokenSettings.expiryType === 'uses' ? examData.tokenSettings.expiryValue : null,
-      usedCount: 0,
-      lastUsed: null,
-      studentInfo: null
-    }));
+    try {
+      // Get backend URL from environment
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      
+      // Generate tokens using backend API
+      const newTokens = [];
+      
+      for (let i = 0; i < tokenCount; i++) {
+        const response = await fetch(`${backendUrl}/api/admin/create-token`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            exam_id: examData.id,
+            student_name: null,
+            max_usage: examData.tokenSettings.expiryType === 'uses' ? examData.tokenSettings.expiryValue : 1,
+            expires_in_hours: examData.tokenSettings.expiryType === 'time' ? examData.tokenSettings.expiryValue : 24
+          }),
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          newTokens.push({
+            id: `token-${Date.now()}-${i}`,
+            token: data.token,
+            status: 'active',
+            createdAt: new Date(),
+            expiresAt: examData.tokenSettings.expiryType === 'time' 
+              ? new Date(Date.now() + examData.tokenSettings.expiryValue * 60 * 60 * 1000)
+              : null,
+            maxUses: examData.tokenSettings.expiryType === 'uses' ? examData.tokenSettings.expiryValue : null,
+            usedCount: 0,
+            lastUsed: null,
+            studentInfo: null,
+            examInfo: data.exam_info
+          });
+        } else {
+          console.error('Failed to create token:', data.message);
+          // Show error to user
+          alert(`Failed to create token ${i + 1}: ${data.message}`);
+        }
+      }
 
-    setTokens(newTokens);
-    setGeneratedTokens(newTokens);
-    setIsGenerating(false);
+      if (newTokens.length > 0) {
+        setTokens(newTokens);
+        setGeneratedTokens(newTokens);
+        console.log(`Successfully generated ${newTokens.length} tokens`);
+      } else {
+        alert('Failed to generate any tokens. Please check your exam configuration.');
+      }
+      
+    } catch (error) {
+      console.error('Error generating tokens:', error);
+      alert('Failed to generate tokens. Please check your connection and try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const copyToken = async (token) => {
