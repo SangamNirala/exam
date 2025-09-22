@@ -63,11 +63,15 @@ const TokenValidator = () => {
       return;
     }
 
-    // Validate token format (8 characters alphanumeric)
-    if (!/^[A-Z0-9]{8}$/.test(token) && !demoTokens.includes(token)) {
+    // Validate token format - support both demo tokens (8 chars) and admin-generated tokens (with hyphens)
+    const isDemoToken = demoTokens.includes(token);
+    const isValidDemoFormat = /^[A-Z0-9]{8}$/.test(token);
+    const isValidAdminFormat = /^[A-Z0-9]{4}-[A-Z0-9]{3,4}$/.test(token); // Format like ZPCU-KOC, DDHV-HNVR
+    
+    if (!isDemoToken && !isValidDemoFormat && !isValidAdminFormat) {
       setValidationResult({
         success: false,
-        message: 'Invalid token format. Token should be 8 alphanumeric characters.'
+        message: 'Invalid token format. Token should be 8 alphanumeric characters or in XXXX-XXX format.'
       });
       return;
     }
