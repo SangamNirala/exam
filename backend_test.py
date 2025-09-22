@@ -1742,6 +1742,155 @@ class BackendTester:
             self.log_test("Token IYWX-VL4 Validation", False, f"Request failed: {str(e)}")
             return False
 
+    def test_specific_loading_exam_bug_tokens(self):
+        """Test specific tokens for Loading exam bug fix - I9Z2-ZQO (empty questions) and IYWX-VL4 (populated questions)"""
+        print("\n🎯 TESTING SPECIFIC LOADING EXAM BUG FIX TOKENS")
+        print("=" * 60)
+        
+        # Test Token I9Z2-ZQO (empty questions array - causing original infinite loading)
+        try:
+            test_request = {"token": "I9Z2-ZQO"}
+            response = self.session.post(f"{self.base_url}/student/validate-token", 
+                                       json=test_request, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                valid = data.get('valid', False)
+                exam_info = data.get('exam_info', {})
+                questions = exam_info.get('questions', [])
+                question_count = exam_info.get('question_count', 0)
+                
+                if valid:
+                    if len(questions) == 0 and question_count == 0:
+                        self.log_test("Token I9Z2-ZQO (Empty Questions)", True, 
+                                    "Token validates successfully with empty questions array", 
+                                    f"Valid: {valid}, Questions: {len(questions)}, Question count: {question_count}")
+                    else:
+                        self.log_test("Token I9Z2-ZQO (Empty Questions)", False, 
+                                    "Token should have empty questions array but doesn't",
+                                    f"Questions: {len(questions)}, Question count: {question_count}")
+                else:
+                    self.log_test("Token I9Z2-ZQO (Empty Questions)", False, 
+                                "Token I9Z2-ZQO should validate successfully but doesn't",
+                                f"Valid: {valid}, Message: {data.get('message')}")
+            else:
+                self.log_test("Token I9Z2-ZQO (Empty Questions)", False, 
+                            f"Token validation failed with status {response.status_code}",
+                            f"Response: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Token I9Z2-ZQO (Empty Questions)", False, f"Request failed: {str(e)}")
+        
+        # Test Token IYWX-VL4 (populated questions array - normal scenario)
+        try:
+            test_request = {"token": "IYWX-VL4"}
+            response = self.session.post(f"{self.base_url}/student/validate-token", 
+                                       json=test_request, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                valid = data.get('valid', False)
+                exam_info = data.get('exam_info', {})
+                questions = exam_info.get('questions', [])
+                question_count = exam_info.get('question_count', 0)
+                
+                if valid:
+                    if len(questions) == 3 and question_count == 3:
+                        # Verify question structure
+                        all_questions_valid = True
+                        for i, question in enumerate(questions):
+                            if not all(key in question for key in ['id', 'type', 'question', 'options', 'correct_answer']):
+                                all_questions_valid = False
+                                break
+                            if question.get('type') == 'mcq' and len(question.get('options', [])) != 4:
+                                all_questions_valid = False
+                                break
+                        
+                        if all_questions_valid:
+                            self.log_test("Token IYWX-VL4 (Populated Questions)", True, 
+                                        "Token validates successfully with 3 properly structured questions", 
+                                        f"Valid: {valid}, Questions: {len(questions)}, Question count: {question_count}")
+                        else:
+                            self.log_test("Token IYWX-VL4 (Populated Questions)", False, 
+                                        "Questions structure is invalid",
+                                        f"Questions: {len(questions)}, First question keys: {list(questions[0].keys()) if questions else 'None'}")
+                    else:
+                        self.log_test("Token IYWX-VL4 (Populated Questions)", False, 
+                                    "Token should have 3 questions but doesn't",
+                                    f"Questions: {len(questions)}, Question count: {question_count}")
+                else:
+                    self.log_test("Token IYWX-VL4 (Populated Questions)", False, 
+                                "Token IYWX-VL4 should validate successfully but doesn't",
+                                f"Valid: {valid}, Message: {data.get('message')}")
+            else:
+                self.log_test("Token IYWX-VL4 (Populated Questions)", False, 
+                            f"Token validation failed with status {response.status_code}",
+                            f"Response: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Token IYWX-VL4 (Populated Questions)", False, f"Request failed: {str(e)}")
+        
+        # Test Response Structure Verification for both tokens
+        try:
+            tokens_to_test = ["I9Z2-ZQO", "IYWX-VL4"]
+            structure_tests_passed = 0
+            
+            for token in tokens_to_test:
+                test_request = {"token": token}
+                response = self.session.post(f"{self.base_url}/student/validate-token", 
+                                           json=test_request, timeout=10)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    # Check required response structure
+                    required_fields = ['valid', 'message', 'student_token', 'exam_info']
+                    exam_info_fields = ['id', 'title', 'duration', 'question_count', 'questions']
+                    
+                    has_required_fields = all(field in data for field in required_fields)
+                    has_exam_info_fields = all(field in data.get('exam_info', {}) for field in exam_info_fields)
+                    
+                    if has_required_fields and has_exam_info_fields:
+                        structure_tests_passed += 1
+                        self.log_test(f"Response Structure ({token})", True, 
+                                    "Response has all required fields for ExamInterface",
+                                    f"All required fields present: {required_fields + exam_info_fields}")
+                    else:
+                        missing_fields = [f for f in required_fields if f not in data]
+                        missing_exam_fields = [f for f in exam_info_fields if f not in data.get('exam_info', {})]
+                        self.log_test(f"Response Structure ({token})", False, 
+                                    "Response missing required fields",
+                                    f"Missing: {missing_fields + missing_exam_fields}")
+                else:
+                    self.log_test(f"Response Structure ({token})", False, 
+                                f"Failed to get response for structure test: {response.status_code}")
+            
+            if structure_tests_passed == 2:
+                self.log_test("Response Structure Verification", True, 
+                            "Both tokens return proper response format for ExamInterface",
+                            "All required fields present in both responses")
+            else:
+                self.log_test("Response Structure Verification", False, 
+                            f"Only {structure_tests_passed}/2 tokens have proper response structure")
+                
+        except Exception as e:
+            self.log_test("Response Structure Verification", False, f"Structure test failed: {str(e)}")
+
+    def run_loading_exam_bug_tests_only(self):
+        """Run only the specific Loading exam bug fix tests"""
+        print("🎯 FOCUSED TESTING: Loading Exam Bug Fix")
+        print("=" * 60)
+        
+        # Basic connectivity check
+        if not self.test_connectivity():
+            print("❌ Backend connectivity failed. Cannot run tests.")
+            return self.generate_summary()
+        
+        # Run the specific token tests
+        self.test_specific_loading_exam_bug_tokens()
+        
+        return self.generate_summary()
+
     def run_all_tests(self):
         """Run all backend tests including Student Portal Authentication System"""
         print(f"🚀 Starting Backend API Tests for Student Portal Authentication System")
