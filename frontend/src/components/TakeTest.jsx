@@ -186,12 +186,12 @@ const TakeTest = () => {
                   </div>
 
                   {/* Error Messages */}
-                  {validationResult && !validationResult.success && (
+                  {(error || (validationResult && !validationResult.success)) && (
                     <div className="flex items-start mt-3 p-3 bg-red-50 rounded-lg border border-red-200">
                       <AlertCircle className="w-5 h-5 text-red-600 mr-2 mt-0.5 flex-shrink-0" />
                       <div>
                         <p className="text-red-700 font-medium">
-                          {validationResult.message}
+                          {error || validationResult?.message}
                         </p>
                         {isBlocked && (
                           <p className="text-red-600 text-sm mt-1">
