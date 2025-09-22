@@ -1824,7 +1824,125 @@ class BackendTester:
         
         return failed == 0
 
+    def run_focused_token_validation_tests(self):
+        """Run focused tests for token validation workflow as requested in review"""
+        print("🎯 FOCUSED BACKEND TESTING: TOKEN VALIDATION WORKFLOW")
+        print("=" * 70)
+        print("Testing critical endpoints for exam interface functionality")
+        print()
+        
+        # Initialize variables
+        self.demo_tokens = []
+        self.demo_exam_id = None
+        
+        # Basic connectivity check
+        if not self.test_connectivity():
+            print("❌ Backend connectivity failed. Stopping tests.")
+            return self.generate_summary()
+        
+        # Core endpoints to test as specified in review request
+        print("🔑 TESTING CORE TOKEN VALIDATION ENDPOINTS")
+        print("-" * 50)
+        
+        # 1. POST /api/student/create-demo-token - Verify demo token creation
+        print("1️⃣ Testing demo token creation...")
+        demo_tokens_created = self.test_demo_token_creation()
+        
+        # 2. POST /api/student/validate-token - Test with demo tokens
+        print("2️⃣ Testing token validation with demo tokens...")
+        if demo_tokens_created:
+            self.test_token_validation_valid()
+        
+        # 3. Test response structure for ExamInterface compatibility
+        print("3️⃣ Testing response structure for ExamInterface...")
+        self.test_token_validation_response_structure()
+        
+        # 4. GET /api/assessments/{id}/questions - Fallback question endpoint
+        print("4️⃣ Testing fallback question endpoint...")
+        self.test_fallback_question_endpoint()
+        
+        # 5. Test invalid tokens for error handling
+        print("5️⃣ Testing invalid token handling...")
+        self.test_token_validation_invalid()
+        
+        print("\n📊 FOCUSED TEST SUMMARY")
+        print("-" * 30)
+        
+        return self.generate_summary()
+
+    def test_fallback_question_endpoint(self):
+        """Test GET /api/assessments/{id}/questions fallback endpoint"""
+        try:
+            # Use demo assessment ID
+            demo_assessment_id = "demo-assessment-001"
+            
+            response = self.session.get(f"{self.base_url}/assessments/{demo_assessment_id}/questions", timeout=10)
+            
+            if response.status_code == 200:
+                questions = response.json()
+                
+                if isinstance(questions, list) and len(questions) > 0:
+                    # Validate question structure
+                    valid_questions = 0
+                    for question in questions:
+                        if all(field in question for field in ['id', 'type', 'question', 'options', 'correct_answer']):
+                            valid_questions += 1
+                    
+                    if valid_questions == len(questions):
+                        self.log_test("Fallback Question Endpoint", True, 
+                                    f"Retrieved {len(questions)} valid questions", 
+                                    f"All questions have proper MCQ structure")
+                        return True
+                    else:
+                        self.log_test("Fallback Question Endpoint", False, 
+                                    f"Only {valid_questions}/{len(questions)} questions have valid structure")
+                        return False
+                else:
+                    self.log_test("Fallback Question Endpoint", False, 
+                                "No questions returned or invalid response format")
+                    return False
+            elif response.status_code == 404:
+                self.log_test("Fallback Question Endpoint", False, 
+                            "Demo assessment not found - may need to create demo tokens first")
+                return False
+            else:
+                self.log_test("Fallback Question Endpoint", False, 
+                            f"Request failed with status {response.status_code}",
+                            f"Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Fallback Question Endpoint", False, f"Request failed: {str(e)}")
+            return False
+
+    def generate_summary(self):
+        """Generate test summary"""
+        passed = sum(1 for result in self.test_results if result['success'])
+        failed = len(self.test_results) - passed
+        
+        print(f"\n📈 TEST RESULTS:")
+        print(f"✅ Passed: {passed}")
+        print(f"❌ Failed: {failed}")
+        print(f"📊 Success Rate: {(passed/len(self.test_results)*100):.1f}%")
+        
+        # Show failures
+        failures = [r for r in self.test_results if not r['success']]
+        if failures:
+            print(f"\n❌ FAILED TESTS:")
+            for failure in failures:
+                print(f"   • {failure['test']}: {failure['message']}")
+        
+        return failed == 0
+
 if __name__ == "__main__":
-    tester = BackendTester()
-    success = tester.run_all_tests()
+    import sys
+    
+    # Check if focused testing is requested
+    if len(sys.argv) > 1 and sys.argv[1] == "--focused":
+        tester = BackendTester()
+        success = tester.run_focused_token_validation_tests()
+    else:
+        tester = BackendTester()
+        success = tester.run_all_tests()
+    
     sys.exit(0 if success else 1)
