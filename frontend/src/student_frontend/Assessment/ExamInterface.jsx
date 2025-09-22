@@ -123,47 +123,51 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
   }, [examInfo.id, examInfo.questions, questionsLoaded]);
   
   // Create complete exam data with fallbacks
+  // Fix: Empty array is truthy, so check length explicitly
+  const hasQuestions = examQuestions && examQuestions.length > 0;
+  const fallbackQuestions = [
+    {
+      id: 1,
+      type: 'mcq',
+      question: "What does 'WWW' stand for in web addresses?",
+      options: [
+        "World Wide Web",
+        "World Web Width",
+        "Web World Wide", 
+        "Wide World Web"
+      ],
+      correctAnswer: 0
+    },
+    {
+      id: 2,
+      type: 'mcq',
+      question: "Which of the following is considered safe password practice?",
+      options: [
+        "Using your name and birth year",
+        "Using the same password for all accounts",
+        "Using a combination of letters, numbers, and symbols",
+        "Sharing passwords with trusted friends"
+      ],
+      correctAnswer: 2
+    },
+    {
+      id: 3,
+      type: 'mcq',
+      question: "What is the purpose of antivirus software?",
+      options: [
+        "To speed up your computer",
+        "To protect against malicious software",
+        "To create documents", 
+        "To browse the internet"
+      ],
+      correctAnswer: 1
+    }
+  ];
+  
   const examData = {
     title: examInfo.title || "Digital Literacy Fundamentals",  
-    totalQuestions: examInfo.question_count || examQuestions.length || 2,
-    questions: examQuestions || [
-      {
-        id: 1,
-        type: 'mcq',
-        question: "What does 'WWW' stand for in web addresses?",
-        options: [
-          "World Wide Web",
-          "World Web Width",
-          "Web World Wide", 
-          "Wide World Web"
-        ],
-        correctAnswer: 0
-      },
-      {
-        id: 2,
-        type: 'mcq',
-        question: "Which of the following is considered safe password practice?",
-        options: [
-          "Using your name and birth year",
-          "Using the same password for all accounts",
-          "Using a combination of letters, numbers, and symbols",
-          "Sharing passwords with trusted friends"
-        ],
-        correctAnswer: 2
-      },
-      {
-        id: 3,
-        type: 'mcq',
-        question: "What is the purpose of antivirus software?",
-        options: [
-          "To speed up your computer",
-          "To protect against malicious software",
-          "To create documents", 
-          "To browse the internet"
-        ],
-        correctAnswer: 1
-      }
-    ]
+    totalQuestions: hasQuestions ? examQuestions.length : fallbackQuestions.length,
+    questions: hasQuestions ? examQuestions : fallbackQuestions
   };
 
   // Define handleSubmitExam with stable dependencies to prevent infinite loop
