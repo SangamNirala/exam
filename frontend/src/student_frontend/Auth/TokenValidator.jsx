@@ -141,7 +141,7 @@ const TokenValidator = () => {
                   <div className="relative">
                     <Input
                       type={showToken ? "text" : "password"}
-                      placeholder="Enter your 8-character token"
+                      placeholder="Enter your token (e.g. DEMO1234 or ABCD-EFG)"
                       value={token}
                       onChange={(e) => handleTokenChange(e.target.value)}
                       className={`text-center text-xl font-mono tracking-wider rounded-xl border-2 transition-all duration-200 pr-12 ${
@@ -152,7 +152,7 @@ const TokenValidator = () => {
                           : 'focus:border-blue-500'
                       }`}
                       disabled={isValidating || isBlocked}
-                      maxLength={8}
+                      maxLength={12}
                     />
                     <button
                       type="button"
