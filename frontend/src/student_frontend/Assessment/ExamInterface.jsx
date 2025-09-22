@@ -134,7 +134,8 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
 
   const handleSubmitExam = () => {
     // In real implementation, this would submit to backend
-    setView('results');
+    console.log('Submitting exam with answers:', answers);
+    alert('Exam submitted successfully!');
   };
 
   const currentQuestionData = examData.questions[currentQuestion];
