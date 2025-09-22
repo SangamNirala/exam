@@ -1766,6 +1766,9 @@ class BackendTester:
         # CRITICAL: Test token validation response structure first (as requested in review)
         self.test_token_validation_response_structure()
         
+        # SPECIFIC: Test the token IYWX-VL4 as requested in review
+        self.test_specific_token_iywx_vl4()
+        
         # Test existing endpoints
         self.test_status_endpoints()
         self.test_database_connectivity()
