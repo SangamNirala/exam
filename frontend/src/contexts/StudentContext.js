@@ -92,6 +92,21 @@ const studentReducer = (state, action) => {
           ...action.payload
         }
       };
+      
+    // NEW: Batch load saved state to prevent multiple re-renders
+    case 'LOAD_SAVED_STATE':
+      return {
+        ...state,
+        accessibility: {
+          ...state.accessibility,
+          ...action.payload.accessibility
+        },
+        preferences: {
+          ...state.preferences,
+          ...action.payload.preferences
+        },
+        examHistory: action.payload.examHistory || state.examHistory
+      };
     
     case 'SET_AVAILABLE_EXAMS':
       return { ...state, availableExams: action.payload };
