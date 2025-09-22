@@ -234,8 +234,6 @@ export const StudentAuthProvider = ({ children }) => {
       });
       
       if (response.data.valid) {
-        console.log('🔍 StudentAuthContext: Token validation success, exam_info:', response.data.exam_info);
-        console.log('🔍 StudentAuthContext: exam_info.questions:', response.data.exam_info?.questions);
         dispatch({ 
           type: ACTIONS.TOKEN_VALIDATION_SUCCESS, 
           payload: {
