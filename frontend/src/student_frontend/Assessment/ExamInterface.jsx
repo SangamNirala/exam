@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { useStudentAuth } from '../../contexts/StudentAuthContext';
 
-const ExamInterface = ({ setView }) => {
+const ExamInterface = ({ setView, toggleAccessibility }) => {
   const { state } = useStudentAuth();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(1800); // 30 minutes in seconds
