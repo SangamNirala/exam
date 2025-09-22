@@ -1282,34 +1282,59 @@ class BackendTester:
         self.test_status_endpoints()
         self.test_database_connectivity()
         
+        # PRIORITY TESTS: Admin Token Integration Workflow
+        print("\n🔑 Testing Admin Token Integration Workflow...")
+        
+        # 1. Test admin token creation with valid exam ID
+        admin_token = self.test_admin_token_creation_valid_exam()
+        
+        # 2. Test admin token creation with invalid exam ID
+        self.test_admin_token_creation_invalid_exam()
+        
+        # 3. Test admin token validation (XXXX-XXX format)
+        if admin_token:
+            self.test_admin_token_validation()
+        
+        # 4. Test admin token storage verification
+        if admin_token:
+            self.test_admin_token_storage_verification()
+        
+        # 5. Test admin token edge cases
+        if admin_token:
+            self.test_admin_token_edge_cases()
+        
         # PRIORITY TESTS: Student Portal Authentication System
         print("\n🔐 Testing Student Portal Authentication System...")
         
-        # 1. Test demo token creation
+        # 6. Test demo token creation
         demo_tokens = self.test_demo_token_creation()
         
-        # 2. Test token validation with valid tokens
+        # 7. Test token validation with valid tokens
         if demo_tokens:
             self.test_token_validation_valid()
         
-        # 3. Test token validation with invalid tokens
+        # 8. Test token validation with invalid tokens
         self.test_token_validation_invalid()
         
-        # 4. Test face verification with valid token
+        # 9. Test compatibility between demo and admin tokens
+        if demo_tokens or admin_token:
+            self.test_demo_vs_admin_token_compatibility()
+        
+        # 10. Test face verification with valid token
         if demo_tokens:
             self.test_face_verification_valid()
         
-        # 5. Test face verification with invalid token
+        # 11. Test face verification with invalid token
         self.test_face_verification_invalid_token()
         
-        # 6. Test face verification with invalid image data
+        # 12. Test face verification with invalid image data
         if demo_tokens:
             self.test_face_verification_invalid_image()
         
-        # 7. Test database collections are created and populated
+        # 13. Test database collections are created and populated
         self.test_database_collections_created()
         
-        # 8. Test error handling across authentication endpoints
+        # 14. Test error handling across authentication endpoints
         self.test_authentication_error_handling()
         
         # Test assessment management system endpoints (existing functionality)
