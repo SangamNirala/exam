@@ -54,11 +54,7 @@ const TakeTest = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    console.log('🔍 TakeTest: handleSubmit called with token:', token);
-    console.log('🔍 TakeTest: Current validation state:', { isValidating, error, attempts });
-    
     if (!token.trim()) {
-      console.log('❌ TakeTest: Empty token');
       setValidationResult({
         success: false,
         message: 'Please enter your exam token'
@@ -71,10 +67,7 @@ const TakeTest = () => {
     const isValidDemoFormat = /^[A-Z0-9]{8}$/.test(token);
     const isValidAdminFormat = /^[A-Z0-9]{4}-[A-Z0-9]{3,4}$/.test(token);
     
-    console.log('🔍 TakeTest: Token format check - isDemoToken:', isDemoToken, 'isValidDemoFormat:', isValidDemoFormat, 'isValidAdminFormat:', isValidAdminFormat);
-    
     if (!isDemoToken && !isValidDemoFormat && !isValidAdminFormat) {
-      console.log('❌ TakeTest: Invalid token format');
       setValidationResult({
         success: false,
         message: 'Invalid token format. Token should be 8 alphanumeric characters or in XXXX-XXX format.'
@@ -82,31 +75,14 @@ const TakeTest = () => {
       return;
     }
 
-    console.log('🔍 TakeTest: Calling validateToken...');
-    try {
-      const result = await validateToken(token);
-      console.log('🔍 TakeTest: Token validation result:', result);
-      console.log('🔍 TakeTest: Exam info:', result?.data?.exam_info);
-      setValidationResult(result);
-      
-      if (result.success) {
-        console.log('✅ TakeTest: Token validation successful, setting step to exam in 2 seconds');
-        console.log('🔍 TakeTest: Current step before:', currentStep);
-        // Proceed directly to exam after successful token validation (skip instructions)
-        setTimeout(() => {
-          console.log('✅ TakeTest: Setting currentStep to exam');
-          console.log('🔍 TakeTest: Current step during timeout:', currentStep);
-          setCurrentStep('exam');
-        }, 2000);
-      } else {
-        console.log('❌ TakeTest: Token validation failed:', result.message);
-      }
-    } catch (error) {
-      console.log('❌ TakeTest: Exception during token validation:', error);
-      setValidationResult({
-        success: false,
-        message: 'An error occurred during validation. Please try again.'
-      });
+    const result = await validateToken(token);
+    setValidationResult(result);
+    
+    if (result.success) {
+      // Proceed directly to exam after successful token validation (skip instructions)
+      setTimeout(() => {
+        setCurrentStep('exam');
+      }, 2000);
     }
   };
 
