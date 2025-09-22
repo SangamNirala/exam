@@ -141,9 +141,21 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
     alert('Exam submitted successfully!');
   };
 
-  const currentQuestionData = examData.questions[currentQuestion];
+  const currentQuestionData = examData.questions?.[currentQuestion] || examData.questions?.[0];
   const currentAnswer = answers[currentQuestionData?.id];
   const progress = ((currentQuestion + 1) / examData.totalQuestions) * 100;
+
+  // Safety check - if no valid question data, show loading
+  if (!currentQuestionData) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading exam...</p>
+        </div>
+      </div>
+    );
+  }
 
   const AccessibilityButton = ({ feature, icon: Icon, activeIcon: ActiveIcon, label }) => (
     <Button
