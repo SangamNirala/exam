@@ -11,7 +11,7 @@ import re
 from datetime import datetime
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://quick-test-entry.preview.emergentagent.com/api"
+BACKEND_URL = "https://exam-auth-debug.preview.emergentagent.com/api"
 
 class AdminTokenIntegrationTester:
     def __init__(self):
