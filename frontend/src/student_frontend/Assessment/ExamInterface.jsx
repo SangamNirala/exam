@@ -23,6 +23,7 @@ import {
   Save
 } from 'lucide-react';
 import { useStudentAuth } from '../../contexts/StudentAuthContext';
+import { useStudent } from '../../contexts/StudentContext';
 
 const ExamInterface = ({ setView, toggleAccessibility }) => {
   const { state } = useStudentAuth();
