@@ -22,7 +22,7 @@ import {
 import { useExamCreation } from '../../contexts/ExamCreationContext';
 
 const TokenGenerator = () => {
-  const { examData, updateTokenSettings, setGeneratedTokens, publishExam } = useExamCreation();
+  const { examData, updateTokenSettings, setGeneratedTokens, publishExam, dispatch } = useExamCreation();
   const [tokens, setTokens] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [tokenCount, setTokenCount] = useState(10);
