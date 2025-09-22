@@ -366,11 +366,11 @@ const TokenValidator = () => {
                       </div>
                       <div className="flex items-center space-x-2">
                         <div className="w-2 h-2 bg-blue-600 rounded-full" />
-                        <span className="text-slate-700">Tokens are valid for single use</span>
+                        <span className="text-slate-700">Admin tokens: XXXX-XXX format</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <div className="w-2 h-2 bg-blue-600 rounded-full" />
-                        <span className="text-slate-700">Demo tokens can be reused</span>
+                        <span className="text-slate-700">Demo tokens: 8 characters</span>
                       </div>
                     </div>
                   </div>
