@@ -161,17 +161,22 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
     );
   }
 
-  const AccessibilityButton = ({ feature, icon: Icon, activeIcon: ActiveIcon, label }) => (
-    <Button
-      variant="outline"
-      size="sm"
-      className="rounded-lg"
-      onClick={() => console.log(`Toggle ${feature}`)}
-      title={label}
-    >
-      <Icon className="w-4 h-4" />
-    </Button>
-  );
+  const AccessibilityButton = ({ feature, icon: Icon, activeIcon: ActiveIcon, label }) => {
+    const isActive = studentState?.accessibility?.[feature] || false;
+    const IconComponent = isActive && ActiveIcon ? ActiveIcon : Icon;
+    
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        className={`rounded-lg ${isActive ? 'bg-blue-100 border-blue-400' : ''}`}
+        onClick={() => dispatch({ type: 'TOGGLE_ACCESSIBILITY', payload: feature })}
+        title={label}
+      >
+        <IconComponent className="w-4 h-4" />
+      </Button>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
