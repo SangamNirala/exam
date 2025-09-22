@@ -40,7 +40,7 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
   // Create complete exam data with fallbacks
   const examData = {
     title: examInfo.title || "Digital Literacy Fundamentals",  
-    totalQuestions: examInfo.questions?.length || 3,
+    totalQuestions: examInfo.question_count || examInfo.questions?.length || 3,
     questions: examInfo.questions || [
       {
         id: 1,
