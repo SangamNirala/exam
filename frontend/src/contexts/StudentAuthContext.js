@@ -314,18 +314,18 @@ export const StudentAuthProvider = ({ children }) => {
   // };
   
   // Reset functions
-  const resetTokenValidation = () => {
+  const resetTokenValidation = useCallback(() => {
     dispatch({ type: ACTIONS.RESET_TOKEN_VALIDATION });
-  };
+  }, []);
   
-  const resetFaceRecognition = () => {
+  const resetFaceRecognition = useCallback(() => {
     // COMMENTED OUT: Face verification disabled
     // dispatch({ type: ACTIONS.RESET_FACE_RECOGNITION });
-  };
+  }, []);
   
-  const resetAuth = () => {
+  const resetAuth = useCallback(() => {
     dispatch({ type: ACTIONS.RESET_AUTH });
-  };
+  }, []);
   
   // Complete authentication - MODIFIED: Skip face verification
   const completeAuthentication = () => {
