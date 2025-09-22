@@ -303,6 +303,18 @@ backend:
           agent: "testing"
           comment: "✅ VERIFIED: All database collections working perfectly. student_tokens collection stores demo tokens and retrieves them correctly. assessments collection contains demo assessment with proper structure. exam_sessions collection creates sessions during face verification. All data persistence and retrieval operations functioning correctly."
 
+  - task: "Fix Admin Token Generation Bug"
+    implemented: true
+    working: false
+    file: "frontend/src/admin_frontend/ExamCreation/TokenGenerator.jsx"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "🚨 FIXING CRITICAL BUG: Identified root cause of 422 validation errors in token generation. Issue: examData.id is undefined because exam hasn't been created in database yet. Modified TokenGenerator.jsx to first save exam to database (POST /api/assessments) to get an ID, then generate tokens using that ID. This ensures proper workflow: create exam → get ID → generate tokens. TESTING NEEDED: Need to verify fix works end-to-end."
+
 frontend:
   - task: "Admin Dashboard Authentication"
     implemented: true
