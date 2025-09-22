@@ -24,6 +24,7 @@ function App() {
                   <Route path="/dashboard/:tab?" element={<AppContent />} />
                   <Route path="/admin" element={<NewAdminDashboard />} />
                   <Route path="/student-portal" element={<AuthenticationFlow />} />
+                  <Route path="/take-test" element={<TakeTest />} />
                 </Routes>
               </BrowserRouter>
             </StudentAuthProvider>
