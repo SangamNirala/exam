@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-Focused Token Validation Test for Review Request
-Tests that backend token validation endpoints are still working correctly 
-after frontend face verification removal.
+Focused Token Validation Testing for "Take Test" Feature
+Tests the specific requirements mentioned in the review request
 """
 
 import requests
