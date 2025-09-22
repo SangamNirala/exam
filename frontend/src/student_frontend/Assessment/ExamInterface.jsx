@@ -385,7 +385,7 @@ const ExamInterface = ({ setView, toggleAccessibility }) => {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className={`${state.accessibility.largeText ? 'text-xl' : 'text-lg'} leading-relaxed`}>
+                    <div className={`${studentState?.accessibility?.largeText ? 'text-xl' : 'text-lg'} leading-relaxed`}>
                       <h3 className="font-semibold text-slate-900 mb-6">
                         {currentQuestionData?.question}
                       </h3>
